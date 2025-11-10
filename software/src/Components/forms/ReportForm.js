@@ -43,31 +43,64 @@ export default function ReportForm({
     const file = e.target && e.target.files && e.target.files[0];
     if (!file) return;
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg"]; 
-    // Some mobile browsers may not set file.type; infer from extension in that case
-    const name = (file.name || "").toLowerCase();
-    const hasAllowedExt = name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png");
-    const typeOk = file.type ? allowedTypes.includes(file.type) : hasAllowedExt;
-    if (!typeOk) {
-      setLocalError("Please select a JPG or PNG image.");
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size && file.size > maxSize) {
+      setLocalError("Image too large. Please select a file under 10MB.");
       setImageFile(null);
       setImagePreview(null);
       if (e.target) e.target.value = null;
       return;
     }
-    setLocalError(null);
-    setImageFile(file);
-    try {
-      const url = URL.createObjectURL(file);
-      setImagePreview(url);
-    } catch (err) {
+
+    const name = (file.name || "").toLowerCase();
+    const hasAllowedExt = name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png");
+    const mimeAllowed = file.type ? allowedTypes.includes(file.type) : false;
+
+    const acceptAndPreview = () => {
+      setLocalError(null);
+      setImageFile(file);
       try {
-        const reader = new FileReader();
-        reader.onload = () => setImagePreview(reader.result);
-        reader.readAsDataURL(file);
-      } catch (_) {
-        // As a last resort, clear preview but keep the file for submit
-        setImagePreview(null);
+        const url = URL.createObjectURL(file);
+        setImagePreview(url);
+      } catch (err) {
+        try {
+          const reader = new FileReader();
+          reader.onload = () => setImagePreview(reader.result);
+          reader.readAsDataURL(file);
+        } catch (_) {
+          setImagePreview(null);
+        }
       }
+    };
+
+    if (mimeAllowed || hasAllowedExt) {
+      acceptAndPreview();
+      return;
+    }
+
+    // As a mobile fallback: sniff magic bytes for JPEG/PNG
+    try {
+      const blob = file.slice(0, 12);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const buf = new Uint8Array(reader.result);
+        const isJpeg = buf.length >= 3 && buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF;
+        const isPng = buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47 && buf[4] === 0x0D && buf[5] === 0x0A && buf[6] === 0x1A && buf[7] === 0x0A;
+        if (isJpeg || isPng) {
+          acceptAndPreview();
+        } else {
+          setLocalError("Please select a JPG or PNG image.");
+          setImageFile(null);
+          setImagePreview(null);
+          if (e.target) e.target.value = null;
+        }
+      };
+      reader.readAsArrayBuffer(blob);
+    } catch (_) {
+      setLocalError("Please select a JPG or PNG image.");
+      setImageFile(null);
+      setImagePreview(null);
+      if (e.target) e.target.value = null;
     }
   };
 
