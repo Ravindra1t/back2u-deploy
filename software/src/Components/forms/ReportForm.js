@@ -4,7 +4,6 @@ import { Input } from "../ui/Input";
 import { Textarea } from "../ui/Textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/Select";
 import { Loader2, UploadCloud, X, PlusSquare } from "lucide-react";
-// import { format } from "date-fns"; // Not needed for input type="date"
 
 export default function ReportForm({
   onSubmit,
@@ -22,7 +21,7 @@ export default function ReportForm({
     category: "",
     contact_phone: "",
     [fields.date || "date_found"]: "",
-    location: "" // Added location field
+    location: ""
   });
   
   const [imageFile, setImageFile] = useState(null);
@@ -41,79 +40,131 @@ export default function ReportForm({
   };
   
   const handleFileChange = (e) => {
-    const file = e.target && e.target.files && e.target.files[0];
+    // More robust file extraction
+    let file = null;
     
-    console.log("File selected:", file);
+    if (e.target && e.target.files && e.target.files.length > 0) {
+      file = e.target.files[0];
+    }
+    
+    console.log("=== FILE UPLOAD DEBUG ===");
+    console.log("Event:", e);
+    console.log("File object:", file);
+    console.log("File name:", file?.name);
+    console.log("File type:", file?.type);
+    console.log("File size:", file?.size);
+    console.log("========================");
     
     if (!file) {
-      console.log("No file selected");
+      console.log("No file selected - exiting");
       return;
     }
     
+    // Check file size first (before any other validation)
     const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size && file.size > maxSize) {
+    if (file.size > maxSize) {
       setLocalError("Image too large. Please select a file under 10MB.");
       setImageFile(null);
       setImagePreview(null);
-      if (e.target) e.target.value = null;
+      if (e.target) e.target.value = "";
       return;
     }
 
+    // Clear any previous errors
+    setLocalError(null);
+    
+    // Function to accept and preview the file
     const acceptAndPreview = () => {
-      console.log("Accepting and previewing file");
-      setLocalError(null);
+      console.log("Starting file preview process...");
       setImageFile(file);
       setImageLoading(true);
       
-      // Always use FileReader for mobile compatibility
+      const reader = new FileReader();
+      
+      reader.onloadstart = () => {
+        console.log("FileReader started loading...");
+      };
+      
+      reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentLoaded = Math.round((event.loaded / event.total) * 100);
+          console.log(`Loading progress: ${percentLoaded}%`);
+        }
+      };
+      
+      reader.onload = (event) => {
+        console.log("FileReader completed successfully");
+        console.log("Result length:", event.target.result?.length);
+        setImagePreview(event.target.result);
+        setImageLoading(false);
+      };
+      
+      reader.onerror = (error) => {
+        console.error("FileReader error:", error);
+        console.error("Error details:", reader.error);
+        setLocalError("Failed to load image. Please try again.");
+        setImageFile(null);
+        setImagePreview(null);
+        setImageLoading(false);
+      };
+      
+      reader.onabort = () => {
+        console.warn("FileReader aborted");
+        setLocalError("Image loading was cancelled.");
+        setImageFile(null);
+        setImagePreview(null);
+        setImageLoading(false);
+      };
+      
       try {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          console.log("FileReader loaded successfully");
-          setImagePreview(event.target.result);
-          setImageLoading(false);
-        };
-        reader.onerror = (error) => {
-          console.error("FileReader error:", error);
-          setLocalError("Failed to load image preview.");
-          setImageFile(null);
-          setImagePreview(null);
-          setImageLoading(false);
-        };
+        console.log("Calling readAsDataURL...");
         reader.readAsDataURL(file);
       } catch (err) {
-        console.error("Error creating FileReader:", err);
-        setLocalError("Failed to load image preview.");
+        console.error("Exception calling readAsDataURL:", err);
+        setLocalError("Failed to load image. Please try again.");
         setImageFile(null);
         setImagePreview(null);
         setImageLoading(false);
       }
     };
 
-    // For mobile, be very permissive - accept any file that looks like it might be an image
-    const name = (file.name || "").toLowerCase();
-    const hasImageExt = name.includes(".jpg") || name.includes(".jpeg") || name.includes(".png") || 
-                        name.includes(".webp") || name.includes(".heic") || name.includes(".gif") ||
-                        name.includes(".bmp");
-    
+    // Very permissive validation for mobile compatibility
+    const fileName = (file.name || "").toLowerCase();
     const mimeType = (file.type || "").toLowerCase();
+    
+    console.log("Validation check:");
+    console.log("- File name:", fileName);
+    console.log("- MIME type:", mimeType);
+    
+    // Check if it's an image by MIME type (most reliable)
     const hasImageMime = mimeType.startsWith("image/");
-
-    console.log("File name:", name);
-    console.log("File type:", file.type);
-    console.log("Has image extension:", hasImageExt);
-    console.log("Has image MIME:", hasImageMime);
-
-    // If it has any indication it's an image, accept it immediately
+    
+    // Check if it has an image extension
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif', '.bmp', '.svg'];
+    const hasImageExt = imageExtensions.some(ext => fileName.endsWith(ext));
+    
+    console.log("- Has image MIME:", hasImageMime);
+    console.log("- Has image extension:", hasImageExt);
+    
+    // Accept if either MIME type or extension indicates it's an image
     if (hasImageMime || hasImageExt) {
-      console.log("File passed initial checks, accepting");
+      console.log("✓ File passed validation - accepting");
       acceptAndPreview();
       return;
     }
-
-    // If no extension or MIME type info, still try to accept it (mobile fallback)
-    console.log("No clear image indicators, accepting anyway for mobile compatibility");
-    acceptAndPreview();
+    
+    // Final fallback: if we have a file but no clear indicators (some mobile browsers),
+    // try to accept it anyway
+    if (file.size > 0) {
+      console.log("⚠ No clear image indicators but file exists - accepting anyway (mobile fallback)");
+      acceptAndPreview();
+      return;
+    }
+    
+    // If we get here, something is wrong
+    console.error("✗ File validation failed");
+    setLocalError("Please select a valid image file.");
+    if (e.target) e.target.value = "";
   };
 
   const handleFormSubmit = (e) => {
@@ -278,7 +329,6 @@ export default function ReportForm({
                 className={!imagePreview ? "absolute inset-0 w-full h-48 opacity-0 cursor-pointer z-10" : "sr-only"}
                 accept="image/*"
                 multiple={false}
-                capture={preferCamera ? "environment" : undefined}
               />
               {imageLoading ? (
                 <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
@@ -288,8 +338,10 @@ export default function ReportForm({
               ) : !imagePreview ? (
                 <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:bg-gray-50 active:bg-gray-100">
                   <UploadCloud className="w-12 h-12 text-gray-400" />
-                  <p className="font-semibold text-amrita-blue mt-2">Click to upload</p>
-                  <p className="text-xs text-gray-500">PNG or JPG up to 10MB</p>
+                  <p className="font-semibold text-amrita-blue mt-2">
+                    {preferCamera ? "Take photo" : "Upload or take photo"}
+                  </p>
+                  <p className="text-xs text-gray-500">PNG, JPG, HEIC up to 10MB</p>
                 </div>
               ) : (
                 <div className="relative w-full h-48 rounded-lg overflow-hidden border">
@@ -302,7 +354,9 @@ export default function ReportForm({
                     onClick={() => {
                       setImageFile(null);
                       setImagePreview(null);
-                      fileInputRef.current.value = null;
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = "";
+                      }
                     }}
                   >
                     <X className="h-4 w-4" />
