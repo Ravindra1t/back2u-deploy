@@ -272,7 +272,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'back2you_items',
-    format: async (req, file) => 'jpg',
+    resource_type: 'image',
     public_id: (req, file) => new Date().toISOString() + '-' + file.originalname,
   },
 });
