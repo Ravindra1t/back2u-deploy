@@ -3,7 +3,7 @@ import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Textarea } from "../ui/Textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/Select";
-import { Loader2, UploadCloud, X, Calendar as CalendarIcon, PlusSquare } from "lucide-react";
+import { Loader2, UploadCloud, X, PlusSquare } from "lucide-react";
 // import { format } from "date-fns"; // Not needed for input type="date"
 
 export default function ReportForm({

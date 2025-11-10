@@ -31,7 +31,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [lostPosts, setLostPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  // removed unused 'user' state to satisfy eslint
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('items'); // items | users | lost
 
@@ -46,8 +46,9 @@ export default function AdminDashboard() {
       return;
     }
 
-    setUser({ name: "Admin", email: "admin1234@amrita.edu", role: "admin" });
+    // call loader once on mount
     loadAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // apiBase imported from ../config
