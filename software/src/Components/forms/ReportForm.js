@@ -42,7 +42,7 @@ export default function ReportForm({
   const handleFileChange = (e) => {
     const file = e.target && e.target.files && e.target.files[0];
     if (!file) return;
-    const allowedTypes = ["image/jpeg", "image/png", "image/jpg"]; 
+    
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size && file.size > maxSize) {
       setLocalError("Image too large. Please select a file under 10MB.");
@@ -52,10 +52,6 @@ export default function ReportForm({
       return;
     }
 
-    const name = (file.name || "").toLowerCase();
-    const hasAllowedExt = name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png");
-    const mimeAllowed = file.type ? allowedTypes.includes(file.type) : false;
-
     const acceptAndPreview = () => {
       setLocalError(null);
       setImageFile(file);
@@ -63,9 +59,15 @@ export default function ReportForm({
         const url = URL.createObjectURL(file);
         setImagePreview(url);
       } catch (err) {
+        // Fallback to FileReader if URL.createObjectURL fails
         try {
           const reader = new FileReader();
           reader.onload = () => setImagePreview(reader.result);
+          reader.onerror = () => {
+            setLocalError("Failed to load image preview.");
+            setImageFile(null);
+            setImagePreview(null);
+          };
           reader.readAsDataURL(file);
         } catch (_) {
           setImagePreview(null);
@@ -73,34 +75,56 @@ export default function ReportForm({
       }
     };
 
+    // Check file extension
+    const name = (file.name || "").toLowerCase();
+    const hasAllowedExt = name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") || name.endsWith(".webp") || name.endsWith(".heic");
+    
+    // Check MIME type
+    const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp", "image/heic", "image/heif"];
+    const mimeAllowed = file.type ? allowedTypes.includes(file.type) : false;
+
+    // If either check passes, accept the file
     if (mimeAllowed || hasAllowedExt) {
       acceptAndPreview();
       return;
     }
 
-    // As a mobile fallback: sniff magic bytes for JPEG/PNG
+    // Mobile fallback: check magic bytes for common image formats
+    // This handles cases where mobile browsers don't set proper MIME types
     try {
       const blob = file.slice(0, 12);
       const reader = new FileReader();
       reader.onload = () => {
-        const buf = new Uint8Array(reader.result);
-        const isJpeg = buf.length >= 3 && buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF;
-        const isPng = buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47 && buf[4] === 0x0D && buf[5] === 0x0A && buf[6] === 0x1A && buf[7] === 0x0A;
-        if (isJpeg || isPng) {
+        try {
+          const buf = new Uint8Array(reader.result);
+          const isJpeg = buf.length >= 3 && buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF;
+          const isPng = buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47 && buf[4] === 0x0D && buf[5] === 0x0A && buf[6] === 0x1A && buf[7] === 0x0A;
+          const isWebP = buf.length >= 12 && buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46 && buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50;
+          
+          if (isJpeg || isPng || isWebP) {
+            acceptAndPreview();
+          } else {
+            setLocalError("Please select a valid image file (JPG, PNG, or WebP).");
+            setImageFile(null);
+            setImagePreview(null);
+            if (e.target) e.target.value = null;
+          }
+        } catch (err) {
+          // If magic byte check fails, accept anyway (be permissive on mobile)
+          console.warn("Magic byte check failed, accepting file anyway:", err);
           acceptAndPreview();
-        } else {
-          setLocalError("Please select a JPG or PNG image.");
-          setImageFile(null);
-          setImagePreview(null);
-          if (e.target) e.target.value = null;
         }
       };
+      reader.onerror = () => {
+        // If reading fails, accept the file anyway (be permissive)
+        console.warn("FileReader error, accepting file anyway");
+        acceptAndPreview();
+      };
       reader.readAsArrayBuffer(blob);
-    } catch (_) {
-      setLocalError("Please select a JPG or PNG image.");
-      setImageFile(null);
-      setImagePreview(null);
-      if (e.target) e.target.value = null;
+    } catch (err) {
+      // If any error occurs in the fallback, just accept the file (be permissive on mobile)
+      console.warn("File validation error, accepting file anyway:", err);
+      acceptAndPreview();
     }
   };
 
@@ -263,7 +287,7 @@ export default function ReportForm({
               ref={fileInputRef}
               onChange={handleFileChange}
               className="sr-only"
-              accept="image/jpeg,image/png"
+              accept="image/*"
               multiple={false}
               capture={preferCamera ? "environment" : undefined}
             />
