@@ -79,7 +79,7 @@ export default function MyActivity() {
         return () => clearTimeout(t);
       }
     }
-  }, [isLoading, claimedByMe, foundByMe, location, navigate]);
+  }, [isLoading, claimedByMe, foundByMe, location, navigate, fetchActivity]);
 
   // Optimistically show the claimed item if BrowseFound passed it along
   useEffect(() => {
