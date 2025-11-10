@@ -42,6 +42,19 @@ export default function ReportForm({
   const handleFileChange = (e) => {
     const file = e.target && e.target.files && e.target.files[0];
     if (!file) return;
+    const allowedTypes = ["image/jpeg", "image/png", "image/jpg"]; 
+    // Some mobile browsers may not set file.type; infer from extension in that case
+    const name = (file.name || "").toLowerCase();
+    const hasAllowedExt = name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png");
+    const typeOk = file.type ? allowedTypes.includes(file.type) : hasAllowedExt;
+    if (!typeOk) {
+      setLocalError("Please select a JPG or PNG image.");
+      setImageFile(null);
+      setImagePreview(null);
+      if (e.target) e.target.value = null;
+      return;
+    }
+    setLocalError(null);
     setImageFile(file);
     try {
       const url = URL.createObjectURL(file);
@@ -217,7 +230,7 @@ export default function ReportForm({
               ref={fileInputRef}
               onChange={handleFileChange}
               className="sr-only"
-              accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
+              accept="image/jpeg,image/png"
               multiple={false}
               capture={preferCamera ? "environment" : undefined}
             />
@@ -228,7 +241,7 @@ export default function ReportForm({
               >
                 <UploadCloud className="w-12 h-12 text-gray-400" />
                 <p className="font-semibold text-amrita-blue mt-2">Click to upload</p>
-                <p className="text-xs text-gray-500">PNG, JPG, HEIC up to 10MB</p>
+                <p className="text-xs text-gray-500">PNG or JPG up to 10MB</p>
               </label>
             ) : (
               <div className="relative w-full h-48 rounded-lg overflow-hidden border">
