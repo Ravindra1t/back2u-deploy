@@ -288,6 +288,11 @@ export default function ReportForm({
               <label
                 htmlFor="photo-upload"
                 className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 active:bg-gray-100"
+                onClick={() => {
+                  if (fileInputRef.current) {
+                    fileInputRef.current.click();
+                  }
+                }}
               >
                 <UploadCloud className="w-12 h-12 text-gray-400" />
                 <p className="font-semibold text-amrita-blue mt-2">Click to upload</p>
@@ -310,6 +315,11 @@ export default function ReportForm({
                   <X className="h-4 w-4" />
                 </Button>
               </div>
+            )}
+            {imageFile && !imagePreview && (
+              <p className="text-xs text-gray-500 mt-2">
+                {imageFile.name} · {imageFile.type || "unknown"} · {(imageFile.size/1048576).toFixed(2)}MB
+              </p>
             )}
           </div>
 
