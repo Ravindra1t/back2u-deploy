@@ -53,12 +53,6 @@ export default function ReportForm({
   const handleFileChange = (e) => {
     const file = e.target && e.target.files && e.target.files[0];
     
-    if (type === "lost" && isMobileDevice()) {
-      alert("uploading lost items image from mobile feature is coming soon on mobile...kindly use desktop in the meanwhile");
-      if (e && e.target) e.target.value = null;
-      return;
-    }
-    
     console.log("File selected:", file);
     
     if (!file) {
@@ -289,12 +283,6 @@ export default function ReportForm({
               type="file"
               name="image"
               ref={fileInputRef}
-              onClick={(e) => {
-                if (type === "lost" && isMobileDevice()) {
-                  e.preventDefault();
-                  alert("uploading lost items image from mobile feature is coming soon on mobile...kindly use desktop in the meanwhile");
-                }
-              }}
               onChange={handleFileChange}
               className="sr-only"
               accept="image/*"
@@ -310,15 +298,6 @@ export default function ReportForm({
               <label
                 htmlFor="photo-upload"
                 className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 active:bg-gray-100"
-                onClick={(e) => {
-                  if (type === "lost" && isMobileDevice()) {
-                    e.preventDefault();
-                    alert("uploading lost items image from mobile feature is coming soon on mobile...kindly use desktop in the meanwhile");
-                    return;
-                  }
-                  console.log("Upload area clicked");
-                  // Let the default label behavior handle the click
-                }}
               >
                 <UploadCloud className="w-12 h-12 text-gray-400" />
                 <p className="font-semibold text-amrita-blue mt-2">Click to upload</p>
