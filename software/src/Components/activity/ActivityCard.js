@@ -120,7 +120,7 @@ export default function ActivityCard({ item, userRole, onConfirm, onOpenChat, on
 
     // For the CLAIMER
     if (userRole === "claimant") {
-      // Case 1: Item is claimed (they are the finalClaimer) -> Show Chat & Confirm
+      // Case 1: Item is claimed (they are the approved claimer) -> Show Chat & Confirm
       if (item.status === 'claimed') {
         return (
           <>
@@ -135,6 +135,21 @@ export default function ActivityCard({ item, userRole, onConfirm, onOpenChat, on
             </Button>
             {getConfirmationButton()}
           </>
+        );
+      }
+      
+      // Case 2: Item is still 'found' but user has a pending claim request -> Show Chat
+      if (item.status === 'found' && onOpenChat) {
+        return (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => onOpenChat(item)}
+            className="flex items-center gap-2"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Chat with Finder
+          </Button>
         );
       }
     }
@@ -166,7 +181,9 @@ export default function ActivityCard({ item, userRole, onConfirm, onOpenChat, on
           <p className="text-sm text-gray-600 break-words">
             {userRole === "finder"
               ? `Status: ${item.claimedBy ? `Approved to ${item.claimedBy.name || ''}` : 'Pending'}`
-              : `Found by: ${item.reportedBy ? item.reportedBy.name : "N/A"}`}
+              : item.status === 'found' 
+                ? `Claim Status: Pending Approval - Found by: ${item.reportedBy ? item.reportedBy.name : "N/A"}`
+                : `Found by: ${item.reportedBy ? item.reportedBy.name : "N/A"}`}
           </p>
           <div className="mt-2">
             <StatusIndicator item={item} />

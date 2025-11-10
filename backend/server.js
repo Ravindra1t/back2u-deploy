@@ -581,11 +581,31 @@ app.get("/api/activity", auth, async (req, res) => {
 
     const foundByMe = await Item.find({ reportedBy: userId })
       .populate("claimedBy", "name email")
+      .populate("claimRequests.user", "name email")
       .sort({ createdAt: -1 });
 
-    const claimedByMe = await Item.find({ claimedBy: userId })
+    // Items where user is the approved claimer OR has a pending/approved claim request
+    const allItems = await Item.find({
+      $or: [
+        { claimedBy: userId },
+        { 'claimRequests.user': userId }
+      ]
+    })
       .populate("reportedBy", "name email")
+      .populate("claimedBy", "name email")
+      .populate("claimRequests.user", "name email")
       .sort({ createdAt: -1 });
+
+    // Filter to only include items where user has an active claim (pending or approved)
+    const claimedByMe = allItems.filter(item => {
+      // If user is the approved claimer, include it
+      if (item.claimedBy && item.claimedBy._id.toString() === userId) {
+        return true;
+      }
+      // If user has a pending or approved claim request, include it
+      const userRequest = item.claimRequests?.find(r => r.user._id.toString() === userId);
+      return userRequest && (userRequest.status === 'pending' || userRequest.status === 'approved');
+    });
 
     const lostByMe = await LostItem.find({ lostBy: userId })
       .sort({ createdAt: -1 });
@@ -735,10 +755,10 @@ app.put("/api/items/claim/:id", auth, async (req, res) => {
     }
     // Ensure claimRequests exists
     if (!Array.isArray(item.claimRequests)) item.claimRequests = [];
-    // Prevent duplicate requests
-    const already = item.claimRequests.find(r => r.user.toString() === userId);
+    // Prevent duplicate pending/approved requests (rejected requests can be resubmitted)
+    const already = item.claimRequests.find(r => r.user.toString() === userId && (r.status === 'pending' || r.status === 'approved'));
     if (already) {
-      return res.status(400).json({ message: 'You already have a pending request' });
+      return res.status(400).json({ message: 'You already have an active claim request' });
     }
     item.claimRequests.push({ user: userId, message: req.body?.message || '' });
     await item.save();
@@ -821,12 +841,12 @@ app.get("/api/chat/:itemId", auth, async (req, res) => {
     }
     const isFinder = item.reportedBy.toString() === userId;
     const isApprovedClaimer = item.claimedBy && item.claimedBy.toString() === userId;
-    const isRequester = Array.isArray(item.claimRequests) && item.claimRequests.some(r => r.user.toString() === userId);
+    const isRequester = Array.isArray(item.claimRequests) && item.claimRequests.some(r => r.user.toString() === userId && (r.status === 'pending' || r.status === 'approved'));
     // Allow chat when:
-    // - item is claimed (finder or approved claimer)
-    // - item is found (finder or any requester)
+    // - item is claimed (finder, approved claimer, or any requester with pending/approved status)
+    // - item is found (finder or any requester with pending/approved status)
     if (item.status === 'claimed') {
-      // Finder, approved claimer, or any requester can view chat while not returned
+      // Finder, approved claimer, or any requester with pending/approved status can view chat
       if (!isFinder && !isApprovedClaimer && !isRequester) return res.status(403).json({ message: 'Access denied' });
     } else if (item.status === 'found') {
       if (!isFinder && !isRequester) return res.status(403).json({ message: 'Access denied' });
@@ -859,9 +879,9 @@ io.on("connection", (socket) => {
       if (!item) return;
       const isFinder = item.reportedBy.toString() === userId;
       const isApprovedClaimer = item.claimedBy && item.claimedBy.toString() === userId;
-      const isRequester = Array.isArray(item.claimRequests) && item.claimRequests.some(r => r.user.toString() === userId);
-      // Allow join: finder always; approved claimer; or requester if still found
-      if (isAdmin || isFinder || isApprovedClaimer || (item.status === 'found' && isRequester)) {
+      const isRequester = Array.isArray(item.claimRequests) && item.claimRequests.some(r => r.user.toString() === userId && (r.status === 'pending' || r.status === 'approved'));
+      // Allow join: finder always; approved claimer; or requester with pending/approved status
+      if (isAdmin || isFinder || isApprovedClaimer || isRequester) {
         socket.join(itemId);
         console.log(`User ${socket.id} joined room: ${itemId}`);
       }
@@ -881,11 +901,11 @@ io.on("connection", (socket) => {
       if (!item) return;
       const isFinder = item.reportedBy.toString() === userId;
       const isApprovedClaimer = item.claimedBy && item.claimedBy.toString() === userId;
-      const isRequester = Array.isArray(item.claimRequests) && item.claimRequests.some(r => r.user.toString() === userId);
-      // Allow sending: if claimed -> finder or approved claimer; if found -> finder or requester
+      const isRequester = Array.isArray(item.claimRequests) && item.claimRequests.some(r => r.user.toString() === userId && (r.status === 'pending' || r.status === 'approved'));
+      // Allow sending: if claimed -> finder, approved claimer, or requester with pending/approved status; if found -> finder or requester
       if (!isAdmin) {
         if (item.status === 'claimed') {
-          if (!isFinder && !isApprovedClaimer) return;
+          if (!isFinder && !isApprovedClaimer && !isRequester) return;
         } else if (item.status === 'found') {
           if (!isFinder && !isRequester) return;
         } else {
