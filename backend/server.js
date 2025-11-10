@@ -23,10 +23,18 @@ const app = express();
 // Configure CORS for deployment: allow specific frontend origins via env FRONTEND_ORIGIN
 // FRONTEND_ORIGIN can be a single origin or comma-separated list
 const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:3000").split(',').map(s => s.trim());
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true; // allow curl/postman
+  if (allowedOrigins.includes(origin)) return true;
+  try {
+    const { hostname } = new URL(origin);
+    if (hostname.endsWith('.vercel.app')) return true; // allow any vercel app
+  } catch (_) { /* ignore */ }
+  return false;
+};
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow no-origin requests (like curl) and any origin in the list
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    if (isAllowedOrigin(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -274,7 +282,10 @@ const upload = multer({ storage: storage });
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      if (isAllowedOrigin(origin)) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'));
+    },
     methods: ["GET", "POST", "PUT", "PATCH"],
     credentials: true,
   },
