@@ -9,13 +9,15 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Allow horizontal scroll as a fallback instead of cutting content */
+  overflow-x: auto;
+  /* Avoid long tokens pushing layout off-screen */
+  overflow-wrap: anywhere;
   /* Safe area for iOS notch */
   padding-top: env(safe-area-inset-top);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
-  /* Avoid horizontal scroll that can trigger odd zoom */
-  overflow-x: hidden;
 }
 
 code {
