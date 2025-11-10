@@ -15,7 +15,7 @@ export default function ReportForm({
   fields,
   formError,
   preferCamera = false,
-  type // This 'type' prop is no longer blocking anything
+  type
 }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -32,8 +32,6 @@ export default function ReportForm({
   const fileInputRef = useRef(null);
   const [localError, setLocalError] = useState(null);
 
-  // [FIXED] This function is no longer needed to block uploads,
-  // but it's fine to keep if you use it for other logic.
   const isMobileDevice = () => {
     if (typeof window === "undefined" || typeof navigator === "undefined") return false;
     const ua = navigator.userAgent || navigator.vendor || "";
@@ -55,8 +53,11 @@ export default function ReportForm({
   const handleFileChange = (e) => {
     const file = e.target && e.target.files && e.target.files[0];
     
-    // [FIXED] Removed the entire block that checked for 'type === "lost"'
-    // and isMobileDevice() and returned an alert.
+    if (type === "lost" && isMobileDevice()) {
+      alert("uploading lost items image from mobile feature is coming soon on mobile...kindly use desktop in the meanwhile");
+      if (e && e.target) e.target.value = null;
+      return;
+    }
     
     console.log("File selected:", file);
     
@@ -173,9 +174,18 @@ export default function ReportForm({
         </div>
 
         <form onSubmit={handleFormSubmit} className="space-y-6">
-          {/* ... (rest of the form fields, no changes needed here) ... */}
-          {/* ... (name, description, location, category, date, contact_phone) ... */}
+          {localError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+              <p className="text-sm font-medium text-red-700">{localError}</p>
+            </div>
+          )}
           
+          {formError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+              <p className="text-sm font-medium text-red-700">{formError}</p>
+            </div>
+          )}
+
           <div>
             <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-1">
               Item Name *
@@ -269,8 +279,6 @@ export default function ReportForm({
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amrita-blue"
             />
           </div>
-          {/* ... (end of unchanged form fields) ... */}
-          
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -281,7 +289,12 @@ export default function ReportForm({
               type="file"
               name="image"
               ref={fileInputRef}
-              // [FIXED] Removed the onClick handler that blocked mobile uploads
+              onClick={(e) => {
+                if (type === "lost" && isMobileDevice()) {
+                  e.preventDefault();
+                  alert("uploading lost items image from mobile feature is coming soon on mobile...kindly use desktop in the meanwhile");
+                }
+              }}
               onChange={handleFileChange}
               className="sr-only"
               accept="image/*"
@@ -297,8 +310,12 @@ export default function ReportForm({
               <label
                 htmlFor="photo-upload"
                 className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 active:bg-gray-100"
-                // [FIXED] Removed the onClick handler that blocked mobile uploads
-                onClick={() => {
+                onClick={(e) => {
+                  if (type === "lost" && isMobileDevice()) {
+                    e.preventDefault();
+                    alert("uploading lost items image from mobile feature is coming soon on mobile...kindly use desktop in the meanwhile");
+                    return;
+                  }
                   console.log("Upload area clicked");
                   // Let the default label behavior handle the click
                 }}
@@ -318,9 +335,7 @@ export default function ReportForm({
                   onClick={() => {
                     setImageFile(null);
                     setImagePreview(null);
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = null;
-                    }
+                    fileInputRef.current.value = null;
                   }}
                 >
                   <X className="h-4 w-4" />
