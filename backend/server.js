@@ -20,7 +20,19 @@ const auth = require("./middleware/auth");
 dotenv.config();
 
 const app = express();
-app.use(cors());
+// Configure CORS for deployment: allow specific frontend origins via env FRONTEND_ORIGIN
+// FRONTEND_ORIGIN can be a single origin or comma-separated list
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:3000").split(',').map(s => s.trim());
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow no-origin requests (like curl) and any origin in the list
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // --- Cloudinary Config ---
@@ -262,8 +274,9 @@ const upload = multer({ storage: storage });
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST", "PUT"],
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "PATCH"],
+    credentials: true,
   },
 });
 

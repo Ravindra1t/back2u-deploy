@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { apiBase } from "../config";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -36,7 +37,7 @@ export default function Login() {
       }
 
       // Connect to the login endpoint on your backend
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${apiBase}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
