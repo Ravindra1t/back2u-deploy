@@ -968,10 +968,7 @@ io.on("connection", (socket) => {
         .populate("sender", "name")
         .populate("receiver", "name");
       
-      // Send message only to sender and receiver (private conversation)
-      // Emit to sender's socket
-      socket.emit("receive_message", messageToEmit);
-      
+      // Send message only to receiver (sender already has it via optimistic update)
       // Emit to receiver's socket if they're connected
       const receiverSocketId = userSockets.get(receiver.toString());
       if (receiverSocketId) {

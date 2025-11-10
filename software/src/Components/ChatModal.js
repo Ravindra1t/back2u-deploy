@@ -96,12 +96,10 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
     socket.emit("join_room", { itemId: item._id, token });
 
     const handleReceiveMessage = (message) => {
-      // Only add message if it's part of this conversation (between current user and chat partner)
-      const isRelevant = 
-        (message.sender._id === currentUser.id && message.receiver._id === chatPartner._id) ||
-        (message.sender._id === chatPartner._id && message.receiver._id === currentUser.id);
+      // Only add message if it's from the chat partner (messages from current user are added optimistically)
+      const isFromPartner = message.sender._id === chatPartner._id && message.receiver._id === currentUser.id;
       
-      if (isRelevant) {
+      if (isFromPartner) {
         setMessages((prev) => [...prev, message]);
       }
     };
@@ -122,16 +120,28 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
     e.preventDefault();
     if (!newMessage.trim() || !currentUser || !item || !chatPartner) return;
 
+    const messageContent = newMessage;
+    setNewMessage(""); // Clear input immediately
+
+    // Optimistically add message to UI
+    const optimisticMessage = {
+      _id: `temp-${Date.now()}`, // Temporary ID
+      sender: { _id: currentUser.id, name: currentUser.name || 'You' },
+      receiver: { _id: chatPartner._id, name: chatPartner.name },
+      content: messageContent,
+      createdAt: new Date(),
+      isOptimistic: true // Flag to identify optimistic messages
+    };
+    setMessages((prev) => [...prev, optimisticMessage]);
+
     const token = localStorage.getItem("authToken");
     // Send message to server with specific receiver
     socket.emit("send_message", {
       item: item._id,
       token,
-      content: newMessage,
+      content: messageContent,
       receiverId: chatPartner._id,
     });
-
-    setNewMessage(""); // Clear input
   };
 
   if (!item) return null;
