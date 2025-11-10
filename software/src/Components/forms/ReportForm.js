@@ -40,10 +40,21 @@ export default function ReportForm({
   };
   
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+    const file = e.target && e.target.files && e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    try {
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+    } catch (err) {
+      try {
+        const reader = new FileReader();
+        reader.onload = () => setImagePreview(reader.result);
+        reader.readAsDataURL(file);
+      } catch (_) {
+        // As a last resort, clear preview but keep the file for submit
+        setImagePreview(null);
+      }
     }
   };
 
@@ -202,10 +213,12 @@ export default function ReportForm({
             <input
               id="photo-upload"
               type="file"
+              name="image"
               ref={fileInputRef}
               onChange={handleFileChange}
               className="sr-only"
-              accept="image/*"
+              accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
+              multiple={false}
               capture={preferCamera ? "environment" : undefined}
             />
             {!imagePreview ? (
