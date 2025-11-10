@@ -27,6 +27,7 @@ export default function ReportForm({
   
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageLoading, setImageLoading] = useState(false);
   const fileInputRef = useRef(null);
   const [localError, setLocalError] = useState(null);
 
@@ -41,7 +42,13 @@ export default function ReportForm({
   
   const handleFileChange = (e) => {
     const file = e.target && e.target.files && e.target.files[0];
-    if (!file) return;
+    
+    console.log("File selected:", file);
+    
+    if (!file) {
+      console.log("No file selected");
+      return;
+    }
     
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size && file.size > maxSize) {
@@ -53,79 +60,60 @@ export default function ReportForm({
     }
 
     const acceptAndPreview = () => {
+      console.log("Accepting and previewing file");
       setLocalError(null);
       setImageFile(file);
+      setImageLoading(true);
+      
+      // Always use FileReader for mobile compatibility
       try {
-        const url = URL.createObjectURL(file);
-        setImagePreview(url);
-      } catch (err) {
-        // Fallback to FileReader if URL.createObjectURL fails
-        try {
-          const reader = new FileReader();
-          reader.onload = () => setImagePreview(reader.result);
-          reader.onerror = () => {
-            setLocalError("Failed to load image preview.");
-            setImageFile(null);
-            setImagePreview(null);
-          };
-          reader.readAsDataURL(file);
-        } catch (_) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          console.log("FileReader loaded successfully");
+          setImagePreview(event.target.result);
+          setImageLoading(false);
+        };
+        reader.onerror = (error) => {
+          console.error("FileReader error:", error);
+          setLocalError("Failed to load image preview.");
+          setImageFile(null);
           setImagePreview(null);
-        }
+          setImageLoading(false);
+        };
+        reader.readAsDataURL(file);
+      } catch (err) {
+        console.error("Error creating FileReader:", err);
+        setLocalError("Failed to load image preview.");
+        setImageFile(null);
+        setImagePreview(null);
+        setImageLoading(false);
       }
     };
 
-    // Check file extension
+    // For mobile, be very permissive - accept any file that looks like it might be an image
     const name = (file.name || "").toLowerCase();
-    const hasAllowedExt = name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") || name.endsWith(".webp") || name.endsWith(".heic");
+    const hasImageExt = name.includes(".jpg") || name.includes(".jpeg") || name.includes(".png") || 
+                        name.includes(".webp") || name.includes(".heic") || name.includes(".gif") ||
+                        name.includes(".bmp");
     
-    // Check MIME type
-    const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp", "image/heic", "image/heif"];
-    const mimeAllowed = file.type ? allowedTypes.includes(file.type) : false;
+    const mimeType = (file.type || "").toLowerCase();
+    const hasImageMime = mimeType.startsWith("image/");
 
-    // If either check passes, accept the file
-    if (mimeAllowed || hasAllowedExt) {
+    console.log("File name:", name);
+    console.log("File type:", file.type);
+    console.log("Has image extension:", hasImageExt);
+    console.log("Has image MIME:", hasImageMime);
+
+    // If it has any indication it's an image, accept it immediately
+    if (hasImageMime || hasImageExt) {
+      console.log("File passed initial checks, accepting");
       acceptAndPreview();
       return;
     }
 
-    // Mobile fallback: check magic bytes for common image formats
-    // This handles cases where mobile browsers don't set proper MIME types
-    try {
-      const blob = file.slice(0, 12);
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const buf = new Uint8Array(reader.result);
-          const isJpeg = buf.length >= 3 && buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF;
-          const isPng = buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47 && buf[4] === 0x0D && buf[5] === 0x0A && buf[6] === 0x1A && buf[7] === 0x0A;
-          const isWebP = buf.length >= 12 && buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46 && buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50;
-          
-          if (isJpeg || isPng || isWebP) {
-            acceptAndPreview();
-          } else {
-            setLocalError("Please select a valid image file (JPG, PNG, or WebP).");
-            setImageFile(null);
-            setImagePreview(null);
-            if (e.target) e.target.value = null;
-          }
-        } catch (err) {
-          // If magic byte check fails, accept anyway (be permissive on mobile)
-          console.warn("Magic byte check failed, accepting file anyway:", err);
-          acceptAndPreview();
-        }
-      };
-      reader.onerror = () => {
-        // If reading fails, accept the file anyway (be permissive)
-        console.warn("FileReader error, accepting file anyway");
-        acceptAndPreview();
-      };
-      reader.readAsArrayBuffer(blob);
-    } catch (err) {
-      // If any error occurs in the fallback, just accept the file (be permissive on mobile)
-      console.warn("File validation error, accepting file anyway:", err);
-      acceptAndPreview();
-    }
+    // If no extension or MIME type info, still try to accept it (mobile fallback)
+    console.log("No clear image indicators, accepting anyway for mobile compatibility");
+    acceptAndPreview();
   };
 
   const handleFormSubmit = (e) => {
@@ -291,10 +279,19 @@ export default function ReportForm({
               multiple={false}
               capture={preferCamera ? "environment" : undefined}
             />
-            {!imagePreview ? (
+            {imageLoading ? (
+              <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
+                <Loader2 className="w-12 h-12 text-amrita-blue animate-spin" />
+                <p className="font-semibold text-amrita-blue mt-2">Loading image...</p>
+              </div>
+            ) : !imagePreview ? (
               <label
                 htmlFor="photo-upload"
-                className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
+                className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 active:bg-gray-100"
+                onClick={(e) => {
+                  console.log("Upload area clicked");
+                  // Let the default label behavior handle the click
+                }}
               >
                 <UploadCloud className="w-12 h-12 text-gray-400" />
                 <p className="font-semibold text-amrita-blue mt-2">Click to upload</p>
