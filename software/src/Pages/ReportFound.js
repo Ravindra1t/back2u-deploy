@@ -71,6 +71,7 @@ export default function ReportFound() {
       title="Report a Found Item"
       subtitle="Thank you for helping our campus community."
       buttonText="Submit Found Item"
+      preferCamera={true}
       fields={{
         date: "date_found",
         dateLabel: "Date item was found",

@@ -13,7 +13,8 @@ export default function ReportForm({
   subtitle,
   buttonText,
   fields,
-  formError
+  formError,
+  preferCamera = false
 }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -205,7 +206,7 @@ export default function ReportForm({
               onChange={handleFileChange}
               className="sr-only"
               accept="image/*"
-              capture="environment"
+              capture={preferCamera ? "environment" : undefined}
             />
             {!imagePreview ? (
               <label
