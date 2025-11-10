@@ -14,8 +14,7 @@ export default function ReportForm({
   buttonText,
   fields,
   formError,
-  preferCamera = false,
-  type
+  preferCamera = false
 }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -31,15 +30,6 @@ export default function ReportForm({
   const [imageLoading, setImageLoading] = useState(false);
   const fileInputRef = useRef(null);
   const [localError, setLocalError] = useState(null);
-
-  const isMobileDevice = () => {
-    if (typeof window === "undefined" || typeof navigator === "undefined") return false;
-    const ua = navigator.userAgent || navigator.vendor || "";
-    const isTouch = (navigator.maxTouchPoints && navigator.maxTouchPoints > 1) ||
-      (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
-    const isMobileUA = /Android|iPhone|iPad|iPod|IEMobile|Windows Phone|BlackBerry|webOS/i.test(ua);
-    return isMobileUA || isTouch;
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
