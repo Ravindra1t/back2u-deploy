@@ -834,6 +834,7 @@ app.post("/api/items/:id/requests/:requestId/reject", auth, async (req, res) => 
 app.get("/api/chat/:itemId", auth, async (req, res) => {
   try {
     const { itemId } = req.params;
+    const { partnerId } = req.query; // Get the chat partner ID from query params
     const userId = req.user.id;
     const item = await Item.findById(itemId);
     if (!item) {
@@ -854,8 +855,25 @@ app.get("/api/chat/:itemId", auth, async (req, res) => {
       return res.status(403).json({ message: 'Chat closed for this item' });
     }
     
-    const messages = await Message.find({ item: itemId })
+    // Filter messages to only show conversation between current user and their partner
+    let messageQuery = { item: itemId };
+    if (partnerId) {
+      // Show only messages between userId and partnerId
+      messageQuery.$or = [
+        { sender: userId, receiver: partnerId },
+        { sender: partnerId, receiver: userId }
+      ];
+    } else {
+      // If no partnerId specified, show messages where user is sender or receiver
+      messageQuery.$or = [
+        { sender: userId },
+        { receiver: userId }
+      ];
+    }
+    
+    const messages = await Message.find(messageQuery)
       .populate("sender", "name")
+      .populate("receiver", "name")
       .sort({ createdAt: 1 });
     res.json(messages);
   } catch (err) {
@@ -865,6 +883,9 @@ app.get("/api/chat/:itemId", auth, async (req, res) => {
 });
 
 // --- Socket.IO Logic ---
+// Store userId -> socketId mapping
+const userSockets = new Map();
+
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
@@ -883,7 +904,10 @@ io.on("connection", (socket) => {
       // Allow join: finder always; approved claimer; or requester with pending/approved status
       if (isAdmin || isFinder || isApprovedClaimer || isRequester) {
         socket.join(itemId);
-        console.log(`User ${socket.id} joined room: ${itemId}`);
+        // Store userId for this socket
+        socket.userId = userId;
+        userSockets.set(userId, socket.id);
+        console.log(`User ${userId} (${socket.id}) joined room: ${itemId}`);
       }
     } catch (e) {
       // ignore invalid
@@ -940,8 +964,19 @@ io.on("connection", (socket) => {
       }
       const newMessage = new Message({ item: itemId, sender: userId, receiver, content });
       await newMessage.save();
-      const messageToEmit = await Message.findById(newMessage._id).populate("sender", "name");
-      io.to(itemId).emit("receive_message", messageToEmit);
+      const messageToEmit = await Message.findById(newMessage._id)
+        .populate("sender", "name")
+        .populate("receiver", "name");
+      
+      // Send message only to sender and receiver (private conversation)
+      // Emit to sender's socket
+      socket.emit("receive_message", messageToEmit);
+      
+      // Emit to receiver's socket if they're connected
+      const receiverSocketId = userSockets.get(receiver.toString());
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("receive_message", messageToEmit);
+      }
     } catch (err) {
       console.error("Error saving/sending message:", err);
     }
@@ -949,6 +984,10 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
+    // Clean up user socket mapping
+    if (socket.userId) {
+      userSockets.delete(socket.userId);
+    }
   });
 });
    

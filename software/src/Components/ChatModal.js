@@ -15,6 +15,7 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [chatPartner, setChatPartner] = useState(null);
   
   const messagesEndRef = useRef(null);
 
@@ -27,16 +28,53 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
     }
   }, []);
 
-  // Fetch chat history and set up socket listeners
+  // Determine chat partner
   useEffect(() => {
     if (!item || !currentUser) return;
+    
+    // If customReceiverId is provided, use it
+    if (customReceiverId) {
+      // Find the partner from claimRequests or claimedBy
+      if (item.claimRequests) {
+        const partner = item.claimRequests.find(r => r.user._id === customReceiverId);
+        if (partner) {
+          setChatPartner(partner.user);
+          return;
+        }
+      }
+      if (item.claimedBy && item.claimedBy._id === customReceiverId) {
+        setChatPartner(item.claimedBy);
+        return;
+      }
+    }
+    
+    // Otherwise determine based on user role
+    const isFinder = item.reportedBy && item.reportedBy._id === currentUser.id;
+    if (isFinder) {
+      // Finder chatting with claimer
+      if (item.claimedBy) {
+        setChatPartner(item.claimedBy);
+      } else if (item.claimRequests && item.claimRequests.length > 0) {
+        setChatPartner(item.claimRequests[0].user);
+      }
+    } else {
+      // Claimer chatting with finder
+      setChatPartner(item.reportedBy);
+    }
+  }, [item, currentUser, customReceiverId]);
+
+  // Fetch chat history and set up socket listeners
+  useEffect(() => {
+    if (!item || !currentUser || !chatPartner) return;
 
     const fetchHistory = async () => {
       setIsLoading(true);
       const token = localStorage.getItem("authToken");
       
       try {
-        const res = await fetch(`${apiBase}/api/chat/${item._id}`, {
+        // Pass partnerId to get only messages between this pair
+        const url = `${apiBase}/api/chat/${item._id}?partnerId=${chatPartner._id}`;
+        const res = await fetch(url, {
           headers: { "Authorization": `Bearer ${token}` }
         });
 
@@ -58,7 +96,14 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
     socket.emit("join_room", { itemId: item._id, token });
 
     const handleReceiveMessage = (message) => {
-      setMessages((prev) => [...prev, message]);
+      // Only add message if it's part of this conversation (between current user and chat partner)
+      const isRelevant = 
+        (message.sender._id === currentUser.id && message.receiver._id === chatPartner._id) ||
+        (message.sender._id === chatPartner._id && message.receiver._id === currentUser.id);
+      
+      if (isRelevant) {
+        setMessages((prev) => [...prev, message]);
+      }
     };
     socket.on("receive_message", handleReceiveMessage);
 
@@ -66,7 +111,7 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
       socket.off("receive_message", handleReceiveMessage);
     };
 
-  }, [item, currentUser]);
+  }, [item, currentUser, chatPartner]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -75,15 +120,15 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !currentUser || !item) return;
+    if (!newMessage.trim() || !currentUser || !item || !chatPartner) return;
 
     const token = localStorage.getItem("authToken");
-    // Send message to server (server determines receiver & authorization)
+    // Send message to server with specific receiver
     socket.emit("send_message", {
       item: item._id,
       token,
       content: newMessage,
-      receiverId: customReceiverId || undefined,
+      receiverId: chatPartner._id,
     });
 
     setNewMessage(""); // Clear input
@@ -97,6 +142,11 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
         <DialogHeader>
           <DialogTitle className="text-amrita-blue">
             Chat about: {item.itemName}
+            {chatPartner && (
+              <span className="text-sm font-normal text-gray-600 block mt-1">
+                Chatting with: {chatPartner.name}
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
 
