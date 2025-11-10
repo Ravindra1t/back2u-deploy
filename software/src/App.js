@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Import Your Pages
 import Dashboard from "./Pages/Dashboard";
@@ -23,7 +23,15 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         {/* Public routes without the main layout */}
-        <Route path="/" element={<Login />} />
+        {/* Auto-redirect at root based on presence of authToken */}
+        <Route
+          path="/"
+          element={
+            localStorage.getItem("authToken")
+              ? <Navigate to="/dashboard" replace />
+              : <Navigate to="/login" replace />
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
