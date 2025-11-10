@@ -14,7 +14,8 @@ export default function ReportForm({
   buttonText,
   fields,
   formError,
-  preferCamera = false
+  preferCamera = false,
+  type
 }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -31,6 +32,15 @@ export default function ReportForm({
   const fileInputRef = useRef(null);
   const [localError, setLocalError] = useState(null);
 
+  const isMobileDevice = () => {
+    if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+    const ua = navigator.userAgent || navigator.vendor || "";
+    const isTouch = (navigator.maxTouchPoints && navigator.maxTouchPoints > 1) ||
+      (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    const isMobileUA = /Android|iPhone|iPad|iPod|IEMobile|Windows Phone|BlackBerry|webOS/i.test(ua);
+    return isMobileUA || isTouch;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -42,6 +52,12 @@ export default function ReportForm({
   
   const handleFileChange = (e) => {
     const file = e.target && e.target.files && e.target.files[0];
+    
+    if (type === "lost" && isMobileDevice()) {
+      alert("uploading lost items image from mobile feature is coming soon on mobile...kindly use desktop in the meanwhile");
+      if (e && e.target) e.target.value = null;
+      return;
+    }
     
     console.log("File selected:", file);
     
@@ -273,6 +289,12 @@ export default function ReportForm({
               type="file"
               name="image"
               ref={fileInputRef}
+              onClick={(e) => {
+                if (type === "lost" && isMobileDevice()) {
+                  e.preventDefault();
+                  alert("uploading lost items image from mobile feature is coming soon on mobile...kindly use desktop in the meanwhile");
+                }
+              }}
               onChange={handleFileChange}
               className="sr-only"
               accept="image/*"
@@ -289,6 +311,11 @@ export default function ReportForm({
                 htmlFor="photo-upload"
                 className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 active:bg-gray-100"
                 onClick={(e) => {
+                  if (type === "lost" && isMobileDevice()) {
+                    e.preventDefault();
+                    alert("uploading lost items image from mobile feature is coming soon on mobile...kindly use desktop in the meanwhile");
+                    return;
+                  }
                   console.log("Upload area clicked");
                   // Let the default label behavior handle the click
                 }}
