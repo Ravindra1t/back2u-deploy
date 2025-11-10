@@ -268,54 +268,48 @@ export default function ReportForm({
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Photo (Optional)
             </label>
-            <input
-              id="photo-upload"
-              type="file"
-              name="image"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="sr-only"
-              accept="image/*"
-              multiple={false}
-              capture={preferCamera ? "environment" : undefined}
-            />
-            {imageLoading ? (
-              <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
-                <Loader2 className="w-12 h-12 text-amrita-blue animate-spin" />
-                <p className="font-semibold text-amrita-blue mt-2">Loading image...</p>
-              </div>
-            ) : !imagePreview ? (
-              <label
-                htmlFor="photo-upload"
-                className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 active:bg-gray-100"
-                onClick={() => {
-                  if (fileInputRef.current) {
-                    fileInputRef.current.click();
-                  }
-                }}
-              >
-                <UploadCloud className="w-12 h-12 text-gray-400" />
-                <p className="font-semibold text-amrita-blue mt-2">Click to upload</p>
-                <p className="text-xs text-gray-500">PNG or JPG up to 10MB</p>
-              </label>
-            ) : (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden border">
-                <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2 rounded-full h-8 w-8"
-                  onClick={() => {
-                    setImageFile(null);
-                    setImagePreview(null);
-                    fileInputRef.current.value = null;
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+            <div className="relative">
+              <input
+                id="photo-upload"
+                type="file"
+                name="image"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className={!imagePreview ? "absolute inset-0 w-full h-48 opacity-0 cursor-pointer z-10" : "sr-only"}
+                accept="image/*"
+                multiple={false}
+                capture={preferCamera ? "environment" : undefined}
+              />
+              {imageLoading ? (
+                <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
+                  <Loader2 className="w-12 h-12 text-amrita-blue animate-spin" />
+                  <p className="font-semibold text-amrita-blue mt-2">Loading image...</p>
+                </div>
+              ) : !imagePreview ? (
+                <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:bg-gray-50 active:bg-gray-100">
+                  <UploadCloud className="w-12 h-12 text-gray-400" />
+                  <p className="font-semibold text-amrita-blue mt-2">Click to upload</p>
+                  <p className="text-xs text-gray-500">PNG or JPG up to 10MB</p>
+                </div>
+              ) : (
+                <div className="relative w-full h-48 rounded-lg overflow-hidden border">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 rounded-full h-8 w-8"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview(null);
+                      fileInputRef.current.value = null;
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
             {imageFile && !imagePreview && (
               <p className="text-xs text-gray-500 mt-2">
                 {imageFile.name} · {imageFile.type || "unknown"} · {(imageFile.size/1048576).toFixed(2)}MB
