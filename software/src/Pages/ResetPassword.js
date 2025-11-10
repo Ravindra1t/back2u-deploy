@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { apiBase } from "../config";
 
 export default function ResetPassword() {
   const [params] = useSearchParams();
@@ -8,7 +9,6 @@ export default function ResetPassword() {
   const email = useMemo(()=> params.get('email') || '', [params]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const apiBase = "http://localhost:5000";
 
   const submit = async (e) => {
     e.preventDefault();

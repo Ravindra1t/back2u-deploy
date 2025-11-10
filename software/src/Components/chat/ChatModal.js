@@ -5,9 +5,10 @@ import { Input } from "../ui/Input";
 import { Send, Loader2 } from "lucide-react";
 import io from "socket.io-client";
 import { jwtDecode } from "jwt-decode";
+import { apiBase, socketUrl } from "../../config";
 
 // Connect to your backend socket server
-const socket = io("http://localhost:5000");
+const socket = io(socketUrl);
 
 export default function ChatModal({ item, onClose, customReceiverId = null }) {
   const [messages, setMessages] = useState([]);
@@ -35,7 +36,7 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
       const token = localStorage.getItem("authToken");
       
       try {
-        const res = await fetch(`http://localhost:5000/api/chat/${item._id}`, {
+        const res = await fetch(`${apiBase}/api/chat/${item._id}`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
 
@@ -53,7 +54,8 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
     
     fetchHistory();
 
-    socket.emit("join_room", item._id);
+    const token = localStorage.getItem("authToken");
+    socket.emit("join_room", { itemId: item._id, token });
 
     const handleReceiveMessage = (message) => {
       setMessages((prev) => [...prev, message]);

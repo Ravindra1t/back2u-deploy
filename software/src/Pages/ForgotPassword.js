@@ -1,11 +1,11 @@
 import React, { useState } from "react";
+import { apiBase } from "../config";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
-  const apiBase = "http://localhost:5000";
 
   const submit = async (e) => {
     e.preventDefault();

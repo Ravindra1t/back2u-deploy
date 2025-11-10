@@ -5,6 +5,7 @@ import { Frown, Loader2 } from "lucide-react";
 import ItemCard from "../Components/browse/ItemCard";
 import SearchFilters from "../Components/browse/SearchFilters";
 import ItemDetailsModal from "../Components/browse/ItemDetailsModal";
+import { apiBase } from "../config";
 
 export default function BrowseFound() {
   const [items, setItems] = useState([]);
@@ -21,7 +22,7 @@ export default function BrowseFound() {
       setIsLoading(true);
       try {
         // This is a public endpoint again
-        const response = await fetch(`http://localhost:5000/api/items/browse?search=${searchTerm}&category=${selectedCategory}`);
+        const response = await fetch(`${apiBase}/api/items/browse?search=${searchTerm}&category=${selectedCategory}`);
         
         if (!response.ok) {
           throw new Error("Failed to fetch items");
@@ -55,7 +56,7 @@ export default function BrowseFound() {
     }
     
     try {
-      const response = await fetch(`http://localhost:5000/api/items/claim/${item._id}`, {
+      const response = await fetch(`${apiBase}/api/items/claim/${item._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

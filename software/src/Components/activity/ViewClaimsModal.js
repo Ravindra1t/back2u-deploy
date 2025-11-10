@@ -9,6 +9,7 @@ import {
 } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { Check, Loader2, MessageSquare } from "lucide-react";
+import { apiBase } from "../../config";
 
 export default function ViewClaimsModal({ item, isOpen, onClose, onApprove, onChat }) {
   const [isApproving, setIsApproving] = useState(false);
@@ -21,7 +22,7 @@ export default function ViewClaimsModal({ item, isOpen, onClose, onApprove, onCh
       setIsLoading(true);
       try {
         const token = localStorage.getItem("authToken");
-        const res = await fetch(`http://localhost:5000/api/items/${item._id}/requests`, {
+        const res = await fetch(`${apiBase}/api/items/${item._id}/requests`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) throw new Error('Failed to load requests');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { Button } from "../Components/ui/Button";
+import { apiBase } from "../config";
 import { 
   PlusSquare, 
   Search,
@@ -30,7 +31,7 @@ export default function Dashboard() {
       }
 
       try {
-        const response = await fetch("http://localhost:5000/api/dashboard", {
+        const response = await fetch(`${apiBase}/api/dashboard`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

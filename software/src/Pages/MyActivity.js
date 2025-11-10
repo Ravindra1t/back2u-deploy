@@ -5,6 +5,7 @@ import ActivityList from "../Components/activity/ActivityList";
 import ItemDetailsModal from "../Components/browse/ItemDetailsModal";
 import ChatModal from "../Components/ChatModal";
 import ViewClaimsModal from "../Components/activity/ViewClaimsModal";
+import { apiBase } from "../config";
 
 export default function MyActivity() {
   const [foundByMe, setFoundByMe] = useState([]);
@@ -30,7 +31,7 @@ export default function MyActivity() {
     setIsLoggedIn(true); 
 
     try {
-      const response = await fetch("http://localhost:5000/api/activity", {
+      const response = await fetch(`${apiBase}/api/activity`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -99,7 +100,7 @@ export default function MyActivity() {
   const handleConfirmation = async (item, confirmationType) => {
     const token = localStorage.getItem("authToken");
     try {
-      await fetch(`http://localhost:5000/api/items/confirm/${item._id}`, {
+      await fetch(`${apiBase}/api/items/confirm/${item._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ export default function MyActivity() {
   const handleApproveClaim = async (item, requestId) => {
     const token = localStorage.getItem("authToken");
     try {
-      const response = await fetch(`http://localhost:5000/api/items/${item._id}/requests/${requestId}/approve`, {
+      const response = await fetch(`${apiBase}/api/items/${item._id}/requests/${requestId}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ export default function MyActivity() {
     const token = localStorage.getItem("authToken");
     if (!window.confirm("Delete this lost post?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/lost/${lostItem._id}`, {
+      const res = await fetch(`${apiBase}/api/lost/${lostItem._id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

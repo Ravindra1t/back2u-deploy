@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { apiBase } from "../config";
 
 export default function Settings() {
   const [profile, setProfile] = useState({ name: "", email: "" });
@@ -8,7 +9,6 @@ export default function Settings() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  const apiBase = "http://localhost:5000";
   const authHeaders = () => ({
     "Content-Type": "application/json",
     Authorization: `Bearer ${localStorage.getItem("authToken")}`,

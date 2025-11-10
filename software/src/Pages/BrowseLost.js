@@ -5,6 +5,7 @@ import { Frown, Loader2 } from "lucide-react";
 import ItemCard from "../Components/browse/ItemCard";
 import SearchFilters from "../Components/browse/SearchFilters";
 import ItemDetailsModal from "../Components/browse/ItemDetailsModal";
+import { apiBase } from "../config";
 
 export default function BrowseLost() {
   const [items, setItems] = useState([]);
@@ -18,7 +19,7 @@ export default function BrowseLost() {
     const fetchItems = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`http://localhost:5000/api/lost/browse?search=${searchTerm}&category=${selectedCategory}`);
+        const response = await fetch(`${apiBase}/api/lost/browse?search=${searchTerm}&category=${selectedCategory}`);
         if (!response.ok) {
           throw new Error("Failed to fetch lost items");
         }
@@ -42,7 +43,7 @@ export default function BrowseLost() {
     }
     
     try {
-      const response = await fetch(`http://localhost:5000/api/lost/respond/${item._id}`, {
+      const response = await fetch(`${apiBase}/api/lost/respond/${item._id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ReportForm from "../Components/forms/ReportForm";
+import { apiBase } from "../config";
 
 export default function ReportLost() {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ export default function ReportLost() {
       }
 
       // Use lost report endpoint
-      const response = await fetch("http://localhost:5000/api/lost/report", {
+      const response = await fetch(`${apiBase}/api/lost/report`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`

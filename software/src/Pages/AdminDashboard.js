@@ -11,6 +11,7 @@ import { Trash2, Check, Shield, UserX, UserCheck, CheckCheck, Users, Package, Me
 
 // Date formatting
 import { format } from "date-fns";
+import { apiBase } from "../config";
 
 // Alert Dialog
 import {
@@ -49,7 +50,7 @@ export default function AdminDashboard() {
     loadAll();
   }, []);
 
-  const apiBase = "http://localhost:5000"; // consider moving to env if deploying
+  // apiBase imported from ../config
 
   const authHeaders = () => ({
     "Content-Type": "application/json",
