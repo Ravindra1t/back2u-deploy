@@ -199,21 +199,23 @@ export default function ReportForm({
               Photo (Optional)
             </label>
             <input
+              id="photo-upload"
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
-              className="hidden"
-              accept="image/png, image/jpeg"
+              className="sr-only"
+              accept="image/*"
+              capture="environment"
             />
             {!imagePreview ? (
-              <div
-                onClick={() => fileInputRef.current.click()}
+              <label
+                htmlFor="photo-upload"
                 className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
               >
                 <UploadCloud className="w-12 h-12 text-gray-400" />
                 <p className="font-semibold text-amrita-blue mt-2">Click to upload</p>
-                <p className="text-xs text-gray-500">PNG, JPG up to 10MB</p>
-              </div>
+                <p className="text-xs text-gray-500">PNG, JPG, HEIC up to 10MB</p>
+              </label>
             ) : (
               <div className="relative w-full h-48 rounded-lg overflow-hidden border">
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
