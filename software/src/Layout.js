@@ -23,6 +23,7 @@ import {
   SidebarFooter,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "./Components/ui/Sidebar"; 
 import { Button } from "./Components/ui/Button"; 
 
@@ -102,7 +103,7 @@ export default function Layout() {
         `}
       </style>
 
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className="min-h-screen flex w-full bg-gray-50 relative">
         {/* Sidebar */}
         <Sidebar className="border-r border-gray-200/60 bg-white/95 backdrop-blur-sm">
           <SidebarHeader className="border-b border-gray-200/60 p-5">
@@ -191,6 +192,9 @@ export default function Layout() {
           </SidebarFooter>
         </Sidebar>
 
+        {/* Mobile overlay when sidebar is open */}
+        <MobileOverlay />
+
         {/* Main content */}
         <main className="flex-1 flex flex-col bg-gray-50/50">
           <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200/60 px-6 py-4 md:hidden">
@@ -202,11 +206,25 @@ export default function Layout() {
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto p-6">
-             <Outlet />
+          <div className="flex-1 overflow-auto px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-7xl">
+              <Outlet />
+            </div>
           </div>
         </main>
       </div>
     </SidebarProvider>
+  );
+}
+
+function MobileOverlay() {
+  const { isOpen, setIsOpen } = useSidebar();
+  if (!isOpen) return null;
+  return (
+    <div
+      className="fixed inset-0 bg-black/40 z-30 md:hidden"
+      onClick={() => setIsOpen(false)}
+      aria-hidden="true"
+    />
   );
 }

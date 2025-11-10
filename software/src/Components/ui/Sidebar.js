@@ -1,10 +1,25 @@
 import React, { createContext, useContext, useState } from "react";
 const SidebarContext = createContext();
 export function SidebarProvider({ children }) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   return <SidebarContext.Provider value={{ isOpen, setIsOpen }}>{children}</SidebarContext.Provider>;
 }
-export function Sidebar({ children, className = "" }) { return <aside className={`w-64 ${className}`}>{children}</aside>; }
+export function useSidebar() { return useContext(SidebarContext); }
+export function Sidebar({ children, className = "" }) {
+  const { isOpen } = useContext(SidebarContext);
+  return (
+    <aside
+      className={`
+        ${isOpen ? "block" : "hidden"}
+        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-md
+        md:static md:block md:w-64 md:shadow-none
+        ${className}
+      `}
+    >
+      {children}
+    </aside>
+  );
+}
 export function SidebarHeader({ children, className = "" }) { return <div className={`p-4 ${className}`}>{children}</div>; }
 export function SidebarContent({ children, className = "" }) { return <div className={className}>{children}</div>; }
 export function SidebarFooter({ children, className = "" }) { return <div className={`p-4 ${className}`}>{children}</div>; }
