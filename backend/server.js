@@ -610,17 +610,11 @@ app.get("/api/activity", auth, async (req, res) => {
     const lostByMe = await LostItem.find({ lostBy: userId })
       .sort({ createdAt: -1 });
 
-    const responsesToMyLost = await Item.find({ linkedLostPost: { $ne: null } })
-      .populate("reportedBy", "name email")
-      .populate("claimedBy", "name email")
-      .sort({ createdAt: -1 })
-      .then(items => items.filter(i => i.claimedBy && i.claimedBy._id.toString() === userId));
+    // Note: Items linked to lost posts are already included in foundByMe and claimedByMe
+    // foundByMe includes items where reportedBy = userId (including responses to lost posts)
+    // claimedByMe includes items where claimedBy = userId (including auto-claimed lost post responses)
 
-    const myResponsesToLost = await Item.find({ reportedBy: userId, linkedLostPost: { $ne: null } })
-      .populate("claimedBy", "name email")
-      .sort({ createdAt: -1 });
-
-    res.json({ foundByMe, claimedByMe, lostByMe, responsesToMyLost, myResponsesToLost });
+    res.json({ foundByMe, claimedByMe, lostByMe });
 
   } catch (err) {
     console.error(err.message);
@@ -672,7 +666,11 @@ app.get("/api/items/browse", async (req, res) => {
     const { search, category } = req.query;
 
     // Show both 'found' and 'claimed' items (keep visible until returned)
-    let matchStage = { status: { $in: ['found', 'claimed'] } };
+    // Exclude items linked to lost posts (those are auto-claimed and shouldn't appear in browse)
+    let matchStage = { 
+      status: { $in: ['found', 'claimed'] },
+      linkedLostPost: null // Only show items not linked to lost posts
+    };
     if (category && category !== 'all') {
       matchStage.category = category;
     }

@@ -11,8 +11,6 @@ export default function MyActivity() {
   const [foundByMe, setFoundByMe] = useState([]);
   const [claimedByMe, setClaimedByMe] = useState([]);
   const [lostByMe, setLostByMe] = useState([]);
-  const [responsesToMyLost, setResponsesToMyLost] = useState([]);
-  const [myResponsesToLost, setMyResponsesToLost] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedItemForDetails, setSelectedItemForDetails] = useState(null); // For Details Modal
   const [selectedItemForClaims, setSelectedItemForClaims] = useState(null); // For Claims Modal
@@ -46,8 +44,6 @@ export default function MyActivity() {
       setFoundByMe(data.foundByMe || []);
       setClaimedByMe(data.claimedByMe || []);
       setLostByMe(data.lostByMe || []);
-      setResponsesToMyLost(data.responsesToMyLost || []);
-      setMyResponsesToLost(data.myResponsesToLost || []);
       setIsLoading(false);
 
     } catch (e) {
@@ -237,62 +233,6 @@ export default function MyActivity() {
             onOpenChat={(item) => setSelectedChatItem(item)}
           />
         </div>
-
-        {/* Optional: activity around lost posts */}
-        {(responsesToMyLost.length > 0 || myResponsesToLost.length > 0) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white shadow-lg border-none p-6 rounded-lg">
-              <h2 className="text-xl font-semibold text-amrita-blue mb-4">Responses to My Lost Posts</h2>
-              {responsesToMyLost.length === 0 ? (
-                <p className="text-gray-500">No responses yet.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {responsesToMyLost.map((it) => (
-                    <li key={it._id} className="p-3 border rounded-md bg-gray-50 flex items-center justify-between">
-                      <div>
-                        <div className="font-semibold text-gray-900">{it.itemName || 'Item'}</div>
-                        <div className="text-sm text-gray-600">Status: {it.status}</div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          className="px-3 py-1.5 text-sm border rounded-md"
-                          onClick={() => setSelectedItemForDetails(it)}
-                        >
-                          Details
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <div className="bg-white shadow-lg border-none p-6 rounded-lg">
-              <h2 className="text-xl font-semibold text-amrita-blue mb-4">My Responses to Others' Lost Posts</h2>
-              {myResponsesToLost.length === 0 ? (
-                <p className="text-gray-500">No responses yet.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {myResponsesToLost.map((it) => (
-                    <li key={it._id} className="p-3 border rounded-md bg-gray-50 flex items-center justify-between">
-                      <div>
-                        <div className="font-semibold text-gray-900">{it.itemName || 'Item'}</div>
-                        <div className="text-sm text-gray-600">Status: {it.status}</div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          className="px-3 py-1.5 text-sm border rounded-md"
-                          onClick={() => setSelectedItemForDetails(it)}
-                        >
-                          Details
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* --- 4. RENDER BOTH MODALS --- */}
