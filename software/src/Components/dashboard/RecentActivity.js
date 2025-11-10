@@ -8,6 +8,7 @@ import { createPageUrl } from "../../utils";
 import { Button } from "../ui/Button";
 
 export default function RecentActivity({ items, isLoading }) {
+  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches;
   if (isLoading) {
     return (
       <Card className="shadow-md border-none bg-white">
@@ -62,44 +63,82 @@ export default function RecentActivity({ items, isLoading }) {
         <div className="space-y-2">
           {items.length > 0 ? (
             items.map((item, index) => (
-              <motion.div
-                key={item._id || item.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200 group"
-              >
-                <div className="p-3 rounded-lg bg-blue-100 text-amrita-blue">
-                  <MapPin className="w-5 h-5" />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate">
-                    {item.itemName || item.title || "Item"}
-                  </h3>
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span>At: {item.locationFound || item.location_found || "Unknown"}</span>
-                    <span>•</span>
-                    <span>
-                      {item.createdAt
-                        ? format(new Date(item.createdAt), "MMM d, yyyy")
-                        : item.created_date
-                        ? format(new Date(item.created_date), "MMM d, yyyy")
-                        : "Date not available"}
-                    </span>
-                  </div>
-                </div>
-
-                <Link
-                  to={createPageUrl("BrowseFound")}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              (isMobile ? (
+                <div
+                  key={item._id || item.id}
+                  className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200 group"
                 >
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-2" />
-                    View
-                  </Button>
-                </Link>
-              </motion.div>
+                  <div className="p-3 rounded-lg bg-blue-100 text-amrita-blue">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate">
+                      {item.itemName || item.title || "Item"}
+                    </h3>
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <span>At: {item.locationFound || item.location_found || "Unknown"}</span>
+                      <span>•</span>
+                      <span>
+                        {item.createdAt
+                          ? format(new Date(item.createdAt), "MMM d, yyyy")
+                          : item.created_date
+                          ? format(new Date(item.created_date), "MMM d, yyyy")
+                          : "Date not available"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Link
+                    to={createPageUrl("BrowseFound")}
+                    className="opacity-100"
+                  >
+                    <Button variant="outline" size="sm">
+                      <Eye className="w-4 h-4 mr-2" />
+                      View
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <motion.div
+                  key={item._id || item.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200 group"
+                >
+                  <div className="p-3 rounded-lg bg-blue-100 text-amrita-blue">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate">
+                      {item.itemName || item.title || "Item"}
+                    </h3>
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <span>At: {item.locationFound || item.location_found || "Unknown"}</span>
+                      <span>•</span>
+                      <span>
+                        {item.createdAt
+                          ? format(new Date(item.createdAt), "MMM d, yyyy")
+                          : item.created_date
+                          ? format(new Date(item.created_date), "MMM d, yyyy")
+                          : "Date not available"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Link
+                    to={createPageUrl("BrowseFound")}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  >
+                    <Button variant="outline" size="sm">
+                      <Eye className="w-4 h-4 mr-2" />
+                      View
+                    </Button>
+                  </Link>
+                </motion.div>
+              ))
             ))
           ) : (
             <div className="text-center py-8 text-gray-500">

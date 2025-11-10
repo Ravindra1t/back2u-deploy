@@ -29,6 +29,11 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Slightly smaller base text on small screens to feel less zoomed */
+@media (max-width: 640px) {
+  html { font-size: 15px; }
+}
+
 /* Make media fluid */
 img, video, canvas, svg { max-width: 100%; height: auto; }
 
