@@ -428,6 +428,10 @@ app.post("/api/lost/respond/:lostId", auth, upload.single('image'), async (req, 
     if (!lost) {
       return res.status(404).json({ message: "Lost post not found" });
     }
+    // Prevent the user who reported the lost item from claiming they found it
+    if (lost.lostBy.toString() === req.user.id) {
+      return res.status(400).json({ message: 'You cannot respond to your own lost post' });
+    }
 
     const rawCategory = req.body.category || lost.category;
     const categoryValue = rawCategory ? String(rawCategory).toLowerCase().trim() : null;
@@ -790,6 +794,10 @@ app.post("/api/items/:id/requests/:requestId/approve", auth, async (req, res) =>
 
     const reqObj = item.claimRequests.id(req.params.requestId);
     if (!reqObj) return res.status(404).json({ message: 'Request not found' });
+    // Defensive: prevent approving a claim to the finder themselves
+    if (reqObj.user.toString() === item.reportedBy.toString()) {
+      return res.status(400).json({ message: 'Cannot approve a claim to yourself' });
+    }
 
     // Mark approved request and reject others
     item.claimRequests = item.claimRequests.map(r => {
