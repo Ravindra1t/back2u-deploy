@@ -32,34 +32,38 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
   useEffect(() => {
     if (!item || !currentUser) return;
     
-    // If customReceiverId is provided, use it
+    const normalizeUser = (u, fallbackName) => {
+      if (!u) return null;
+      if (typeof u === 'string') return { _id: u, name: fallbackName };
+      if (u._id) return { _id: u._id, name: u.name || fallbackName };
+      return null;
+    };
+
     if (customReceiverId) {
-      // Find the partner from claimRequests or claimedBy
-      if (item.claimRequests) {
-        const partner = item.claimRequests.find(r => r.user._id === customReceiverId);
+      if (Array.isArray(item.claimRequests)) {
+        const partner = item.claimRequests.find(r => (r.user?._id || r.user) === customReceiverId);
         if (partner) {
-          setChatPartner(partner.user);
+          setChatPartner(normalizeUser(partner.user, 'User'));
           return;
         }
       }
-      if (item.claimedBy && item.claimedBy._id === customReceiverId) {
-        setChatPartner(item.claimedBy);
+      if (item.claimedBy && (item.claimedBy._id === customReceiverId || item.claimedBy === customReceiverId)) {
+        setChatPartner(normalizeUser(item.claimedBy, 'Claimer'));
         return;
       }
     }
-    
-    // Otherwise determine based on user role
-    const isFinder = item.reportedBy && item.reportedBy._id === currentUser.id;
+
+    const reportedById = item.reportedBy?._id || item.reportedBy;
+    const isFinder = reportedById === currentUser.id;
     if (isFinder) {
-      // Finder chatting with claimer
       if (item.claimedBy) {
-        setChatPartner(item.claimedBy);
+        setChatPartner(normalizeUser(item.claimedBy, 'Claimer'));
       } else if (item.claimRequests && item.claimRequests.length > 0) {
-        setChatPartner(item.claimRequests[0].user);
+        const firstReqUser = item.claimRequests[0]?.user;
+        setChatPartner(normalizeUser(firstReqUser, 'Claimer'));
       }
     } else {
-      // Claimer chatting with finder
-      setChatPartner(item.reportedBy);
+      setChatPartner(normalizeUser(item.reportedBy, 'Finder'));
     }
   }, [item, currentUser, customReceiverId]);
 
