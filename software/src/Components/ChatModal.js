@@ -32,52 +32,77 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
   useEffect(() => {
     if (!item || !currentUser) return;
     
+    const toId = (val) => {
+      if (!val) return null;
+      if (typeof val === 'string') return val;
+      if (typeof val === 'object' && val._id) return String(val._id);
+      // Mongoose ObjectId instance without _id
+      if (typeof val === 'object' && typeof val.toString === 'function') return String(val.toString());
+      return null;
+    };
+
     const normalizeUser = (u, fallbackName) => {
       if (!u) return null;
       if (typeof u === 'string') return { _id: u, name: fallbackName };
-      if (u._id) return { _id: u._id, name: u.name || fallbackName };
+      if (u._id) return { _id: String(u._id), name: u.name || fallbackName };
+      if (typeof u === 'object' && typeof u.toString === 'function') return { _id: String(u.toString()), name: fallbackName };
       return null;
     };
 
     if (customReceiverId) {
+      const customIdStr = String(customReceiverId);
       if (Array.isArray(item.claimRequests)) {
-        const partner = item.claimRequests.find(r => (r.user?._id || r.user) === customReceiverId);
+        const partner = item.claimRequests.find(r => String(r.user?._id || r.user) === customIdStr);
         if (partner) {
           setChatPartner(normalizeUser(partner.user, 'User'));
           return;
         }
       }
-      if (item.claimedBy && (item.claimedBy._id === customReceiverId || item.claimedBy === customReceiverId)) {
+      const claimedById = toId(item.claimedBy);
+      if (claimedById && claimedById === customIdStr) {
         setChatPartner(normalizeUser(item.claimedBy, 'Claimer'));
         return;
       }
     }
 
-    const reportedById = item.reportedBy?._id || item.reportedBy;
-    const isFinder = reportedById === currentUser.id;
+    const reportedById = toId(item.reportedBy);
+    const meId = String(currentUser.id);
+    const isFinder = reportedById && (reportedById === meId);
     if (isFinder) {
       if (item.claimedBy) {
         setChatPartner(normalizeUser(item.claimedBy, 'Claimer'));
       } else if (item.claimRequests && item.claimRequests.length > 0) {
         const firstReqUser = item.claimRequests[0]?.user;
         setChatPartner(normalizeUser(firstReqUser, 'Claimer'));
+      } else {
+        // Fallback: no explicit partner yet
+        const partnerId = toId(item.claimedBy) || (Array.isArray(item.claimRequests) ? toId(item.claimRequests[0]?.user) : null);
+        if (partnerId) setChatPartner({ _id: partnerId, name: 'Claimer' });
       }
     } else {
-      setChatPartner(normalizeUser(item.reportedBy, 'Finder'));
+      const partner = normalizeUser(item.reportedBy, 'Finder');
+      if (partner) {
+        setChatPartner(partner);
+      } else {
+        const partnerId = toId(item.reportedBy);
+        if (partnerId) setChatPartner({ _id: partnerId, name: 'Finder' });
+      }
     }
   }, [item, currentUser, customReceiverId]);
 
   // Fetch chat history and set up socket listeners
   useEffect(() => {
-    if (!item || !currentUser || !chatPartner) return;
+    if (!item || !currentUser) return;
 
     const fetchHistory = async () => {
       setIsLoading(true);
       const token = localStorage.getItem("authToken");
       
       try {
-        // Pass partnerId to get only messages between this pair
-        const url = `${apiBase}/api/chat/${item._id}?partnerId=${chatPartner._id}`;
+        // If we have partner, fetch pairwise; else fetch all involving me
+        const url = chatPartner?._id
+          ? `${apiBase}/api/chat/${item._id}?partnerId=${chatPartner._id}`
+          : `${apiBase}/api/chat/${item._id}`;
         const res = await fetch(url, {
           headers: { "Authorization": `Bearer ${token}` }
         });
@@ -100,11 +125,18 @@ export default function ChatModal({ item, onClose, customReceiverId = null }) {
     socket.emit("join_room", { itemId: item._id, token });
 
     const handleReceiveMessage = (message) => {
-      // Only add message if it's from the chat partner (messages from current user are added optimistically)
-      const isFromPartner = message.sender._id === chatPartner._id && message.receiver._id === currentUser.id;
-      
+      const senderId = String(message?.sender?._id || '');
+      const receiverId = String(message?.receiver?._id || '');
+      const partnerId = String(chatPartner?._id || '');
+      const meId = String(currentUser?.id || '');
+      const isFromPartner = chatPartner
+        ? (senderId === partnerId && receiverId === meId)
+        : (receiverId === meId); // if partner unresolved, accept any inbound to me
       if (isFromPartner) {
-        setMessages((prev) => [...prev, message]);
+        setMessages((prev) => {
+          if (prev.some(m => m._id === message._id)) return prev;
+          return [...prev, message];
+        });
       }
     };
     socket.on("receive_message", handleReceiveMessage);
