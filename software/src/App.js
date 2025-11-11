@@ -12,8 +12,6 @@ import MyActivity from "./Pages/MyActivity";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Settings from "./Pages/Settings";
-import ForgotPassword from "./Pages/ForgotPassword";
-import ResetPassword from "./Pages/ResetPassword";
 
 // Import Your Layout Component
 import Layout from "./Layout"; // Assuming Layout.js is in src/
@@ -34,8 +32,6 @@ export default function App() {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* App routes wrapped in the main Layout */}
         <Route element={<Layout />}>

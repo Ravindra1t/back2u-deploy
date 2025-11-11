@@ -101,59 +101,6 @@ app.put('/api/users/me/password', auth, async (req, res) => {
   }
 });
 
-// === FORGOT / RESET PASSWORD ===
-app.post('/api/auth/forgot-password', async (req, res) => {
-  try {
-    const { email } = req.body || {};
-    if (!email) return res.status(400).json({ message: 'Email required' });
-    const user = await User.findOne({ email });
-    // Always respond success to avoid user enumeration
-    if (!user) return res.json({ message: 'If this email exists, a reset link has been generated.' });
-
-    const plainToken = crypto.randomBytes(20).toString('hex');
-    const hashed = crypto.createHash('sha256').update(plainToken).digest('hex');
-    user.passwordResetToken = hashed;
-    user.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15m
-    await user.save({ validateBeforeSave: false });
-
-    // DEV MODE: return token in response and log it
-    const resetUrl = `${req.headers.origin || 'http://localhost:3000'}/reset-password?token=${plainToken}&email=${encodeURIComponent(email)}`;
-    console.log('Password reset link (DEV):', resetUrl);
-    return res.json({ message: 'Reset link generated', token: plainToken, resetUrl });
-  } catch (e) {
-    console.error(e);
-    res.status(500).send('Server Error');
-  }
-});
-
-app.post('/api/auth/reset-password', async (req, res) => {
-  try {
-    const { email, token, newPassword } = req.body || {};
-    if (!email || !token || !newPassword) return res.status(400).json({ message: 'Missing fields' });
-    if (String(newPassword).length < 6) return res.status(400).json({ message: 'Password too short' });
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid reset token' });
-    const hashed = crypto.createHash('sha256').update(String(token)).digest('hex');
-    if (!user.passwordResetToken || user.passwordResetToken !== hashed) return res.status(400).json({ message: 'Invalid reset token' });
-    if (!user.passwordResetExpires || user.passwordResetExpires < new Date()) return res.status(400).json({ message: 'Reset token expired' });
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
-    user.passwordChangedAt = new Date();
-    user.passwordResetToken = null;
-    user.passwordResetExpires = null;
-    await user.save();
-
-    const payload = { user: { id: user.id, name: user.name, email: user.email, role: user.role || 'user' } };
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' }, (err, tokenOut) => {
-      if (err) throw err;
-      res.json({ message: 'Password reset successful', token: tokenOut });
-    });
-  } catch (e) {
-    console.error(e);
-    res.status(500).send('Server Error');
-  }
-});
 
 // --- Admin Middleware ---
 function requireAdmin(req, res, next) {

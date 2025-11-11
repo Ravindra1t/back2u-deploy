@@ -19,18 +19,6 @@ const UserSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user',
   },
-  passwordResetToken: {
-    type: String,
-    default: null,
-  },
-  passwordResetExpires: {
-    type: Date,
-    default: null,
-  },
-  passwordChangedAt: {
-    type: Date,
-    default: null,
-  },
 }, { timestamps: true }); // Automatically adds 'createdAt' and 'updatedAt'
 
 module.exports = mongoose.model("User", UserSchema);
