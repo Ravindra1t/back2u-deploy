@@ -1,6 +1,6 @@
-Back2You Project Roadmap & Documentation
+Back2U Project Roadmap & Documentation
 📌 Overview
-Back2You is a campus-wide Lost & Found system to help students and staff report, browse, and claim lost items.
+Back2U is a campus-wide Lost & Found system to help students and staff report, browse, and claim lost items.
 This wiki tracks the roadmap, current status, and documentation of the project.
 
 Phase 1: Setup & Foundation (Done)

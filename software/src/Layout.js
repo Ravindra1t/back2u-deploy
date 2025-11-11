@@ -116,7 +116,7 @@ export default function Layout() {
                   onError={(e) => e.target.style.display = 'none'}
                 />
                 <div>
-                  <h2 className="font-bold text-amrita-blue text-lg">Back2You</h2>
+                  <h2 className="font-bold text-amrita-blue text-lg">Back2U</h2>
                   <p className="text-sm text-gray-500 font-medium">Amrita Lost & Found</p>
                 </div>
               </div>

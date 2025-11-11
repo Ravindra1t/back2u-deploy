@@ -70,7 +70,7 @@ export default function Login() {
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
         {/* Logo */}
         <div className="flex flex-col items-center mb-6">
-          <img src="/logo.png" alt="Back2You Logo" className="h-12 mx-auto" onError={(e) => e.target.style.display = 'none'} />
+          <img src="/logo.png" alt="Back2U Logo" className="h-12 mx-auto" onError={(e) => e.target.style.display = 'none'} />
           <h1 className="text-2xl font-bold text-blue-600">Back2U</h1>
           <p className="text-gray-500 text-sm">Amrita Lost & Found</p>
         </div>
