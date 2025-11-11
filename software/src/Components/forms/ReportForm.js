@@ -18,7 +18,7 @@ export default function ReportForm({
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    category: "",
+    category: "electronics",
     contact_phone: "",
     [fields.date || "date_found"]: "",
     location: ""
