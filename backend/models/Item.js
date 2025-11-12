@@ -23,9 +23,8 @@ const ItemSchema = new mongoose.Schema({
     // Ensure frontend sends one of these EXACT lowercase strings:
     enum: [
       'electronics', 'clothing', 'id card', 'keys', 'water bottle', 
-      'bag', 'laptop', 'watch', 'wallet', 'umbrella', 
-      'headphones', 'books', 'stationary', 'jewellery', 
-      'accessories', 'other'
+      'bag', 'laptop', 'headphones', 'books', 'stationary', 
+      'jewellery', 'accessories', 'other'
     ],
   },
   status: {

@@ -27,9 +27,8 @@ const LostItemSchema = new mongoose.Schema({
     lowercase: true,
     enum: [
       'electronics', 'clothing', 'id card', 'keys', 'water bottle', 
-      'bag', 'laptop', 'watch', 'wallet', 'umbrella', 
-      'headphones', 'books', 'stationary', 'jewellery', 
-      'accessories', 'other'
+      'bag', 'laptop', 'headphones', 'books', 'stationary', 
+      'jewellery', 'accessories', 'other'
     ],
   },
   status: {
