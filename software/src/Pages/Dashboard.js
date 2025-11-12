@@ -83,7 +83,7 @@ export default function Dashboard() {
               Welcome to Back2U
             </h1>
             <p className="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto mb-6 sm:mb-8">
-              The official place to report and find lost items on campus. Let's help each other bring belongings back to their owners.
+              A Community driven place to report and find lost items on campus. Let's help each other bring belongings back to their owners.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -110,7 +110,7 @@ export default function Dashboard() {
           <StatsCard
             title="Items Found"
             value={isLoading ? '...' : stats.totalFound}
-            subtitle="Waiting for their owners"
+            subtitle=""
             icon={ClipboardList}
             color="text-amrita-blue"
             bgColor="bg-blue-100"
