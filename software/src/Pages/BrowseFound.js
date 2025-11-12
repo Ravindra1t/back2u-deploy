@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Frown, Loader2 } from "lucide-react";
 import ItemCard from "../Components/browse/ItemCard";
+
 import SearchFilters from "../Components/browse/SearchFilters";
 import ItemDetailsModal from "../Components/browse/ItemDetailsModal";
 import { apiBase } from "../config";
