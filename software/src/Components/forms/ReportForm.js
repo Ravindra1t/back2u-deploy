@@ -24,6 +24,25 @@ export default function ReportForm({
     location: ""
   });
   
+  const categories = [
+    { value: 'electronics', label: 'Electronics' },
+    { value: 'clothing', label: 'Clothing' },
+    { value: 'id card', label: 'ID Card' },
+    { value: 'keys', label: 'Keys' },
+    { value: 'water bottle', label: 'Water Bottle' },
+    { value: 'bag', label: 'Bag' },
+    { value: 'laptop', label: 'Laptop' },
+    { value: 'watch', label: 'Watch' },
+    { value: 'wallet', label: 'Wallet' },
+    { value: 'umbrella', label: 'Umbrella' },
+    { value: 'headphones', label: 'Headphones' },
+    { value: 'books', label: 'Books' },
+    { value: 'stationary', label: 'Stationary' },
+    { value: 'jewellery', label: 'Jewellery' },
+    { value: 'accessories', label: 'Accessories' },
+    { value: 'other', label: 'Other' }
+  ];
+  
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageLoading, setImageLoading] = useState(false);
@@ -276,22 +295,11 @@ export default function ReportForm({
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="electronics">Electronics</SelectItem>
-                  <SelectItem value="clothing">Clothing</SelectItem>
-                  <SelectItem value="id card">ID Card</SelectItem>
-                  <SelectItem value="keys">Keys</SelectItem>
-                  <SelectItem value="water bottle">Water Bottle</SelectItem>
-                  <SelectItem value="bag">Bag</SelectItem>
-                  <SelectItem value="laptop">Laptop</SelectItem>
-                  <SelectItem value="watch">Watch</SelectItem>
-                  <SelectItem value="wallet">Wallet</SelectItem>
-                  <SelectItem value="umbrella">Umbrella</SelectItem>
-                  <SelectItem value="headphones">Headphones</SelectItem>
-                  <SelectItem value="books">Books</SelectItem>
-                  <SelectItem value="stationary">Stationary</SelectItem>
-                  <SelectItem value="jewellery">Jewellery</SelectItem>
-                  <SelectItem value="accessories">Accessories</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
