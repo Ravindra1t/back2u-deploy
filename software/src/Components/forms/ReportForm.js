@@ -280,6 +280,17 @@ export default function ReportForm({
                   <SelectItem value="clothing">Clothing</SelectItem>
                   <SelectItem value="id card">ID Card</SelectItem>
                   <SelectItem value="keys">Keys</SelectItem>
+                  <SelectItem value="water bottle">Water Bottle</SelectItem>
+                  <SelectItem value="bag">Bag</SelectItem>
+                  <SelectItem value="laptop">Laptop</SelectItem>
+                  <SelectItem value="watch">Watch</SelectItem>
+                  <SelectItem value="wallet">Wallet</SelectItem>
+                  <SelectItem value="umbrella">Umbrella</SelectItem>
+                  <SelectItem value="headphones">Headphones</SelectItem>
+                  <SelectItem value="books">Books</SelectItem>
+                  <SelectItem value="stationary">Stationary</SelectItem>
+                  <SelectItem value="jewellery">Jewellery</SelectItem>
+                  <SelectItem value="accessories">Accessories</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>

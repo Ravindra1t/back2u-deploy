@@ -454,6 +454,7 @@ app.get("/api/dashboard", auth, async (req, res) => {
   try {
     const totalFound = await Item.countDocuments();
     const totalReturned = await Item.countDocuments({ status: "returned" });
+    const totalUsers = await User.countDocuments();
     const totalLost = await LostItem.countDocuments();
     const recentItems = await Item.find()
       .sort({ createdAt: -1 })
@@ -462,6 +463,7 @@ app.get("/api/dashboard", auth, async (req, res) => {
     res.json({
       totalFound,
       totalReturned,
+      totalUsers,
       totalLost,
       recentItems,
     });

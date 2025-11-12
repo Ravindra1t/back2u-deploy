@@ -15,7 +15,7 @@ import StatsCard from "../Components/dashboard/StatsCard";
 import RecentActivity from "../Components/dashboard/RecentActivity";
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ totalFound: 0, totalReturned: 0 });
+  const [stats, setStats] = useState({ totalFound: 0, totalReturned: 0, totalUsers: 0 });
   const [recentItems, setRecentItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -54,6 +54,7 @@ export default function Dashboard() {
         setStats({
           totalFound: data.totalFound,
           totalReturned: data.totalReturned,
+          totalUsers: data.totalUsers || 0,
         });
         setRecentItems(data.recentItems);
 
@@ -125,7 +126,7 @@ export default function Dashboard() {
           />
           <StatsCard
             title="Community Members"
-            value="1,500+" // This is still hardcoded, which is fine
+            value={isLoading ? '...' : stats.totalUsers.toLocaleString()}
             subtitle="Helping each other out"
             icon={Users}
             color="text-amrita-saffron"
