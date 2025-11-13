@@ -19,7 +19,19 @@ export default function BrowseLost() {
     const fetchItems = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${apiBase}/api/lost/browse?search=${searchTerm}&category=${selectedCategory}`);
+        // Build query parameters
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        
+        // Handle multiple categories (comma-separated)
+        if (selectedCategory && selectedCategory !== 'all') {
+          const categories = selectedCategory.split(',');
+          categories.forEach(cat => {
+            if (cat.trim()) params.append('category', cat.trim());
+          });
+        }
+        
+        const response = await fetch(`${apiBase}/api/lost/browse?${params.toString()}`);
         if (!response.ok) {
           throw new Error("Failed to fetch lost items");
         }
