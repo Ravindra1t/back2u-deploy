@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 
 // Map of display labels to their corresponding category values
+// All values are in lowercase for consistency
 const CATEGORY_MAPPING = {
   "All Categories": ["all"],
   "📱 Electronics": ["electronics"],

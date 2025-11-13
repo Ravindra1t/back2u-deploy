@@ -26,11 +26,16 @@ export default function BrowseFound() {
         const params = new URLSearchParams();
         if (searchTerm) params.append('search', searchTerm);
         
-        // Handle multiple categories (comma-separated)
+        // Handle multiple categories (comma-separated) and ensure lowercase
         if (selectedCategory && selectedCategory !== 'all') {
           const categories = selectedCategory.split(',');
           categories.forEach(cat => {
-            if (cat.trim()) params.append('category', cat.trim());
+            const trimmedCat = cat.trim();
+            if (trimmedCat) {
+              // Convert to lowercase and remove any extra whitespace
+              const lowerCat = trimmedCat.toLowerCase().trim();
+              params.append('category', lowerCat);
+            }
           });
         }
         
