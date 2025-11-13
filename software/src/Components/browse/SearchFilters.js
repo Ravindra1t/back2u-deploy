@@ -6,17 +6,18 @@ import { Search } from "lucide-react";
 
 // Map of display labels to their corresponding category values
 // All values are in lowercase for consistency
+// Includes both singular and plural forms for better matching
 const CATEGORY_MAPPING = {
   "All Categories": ["all"],
-  "📱 Electronics": ["electronics"],
-  "👕 Clothing": ["clothing"],
-  "📚 Books & Stationery": ["books", "stationery"],
-  "💍 Jewelry & Accessories": ["jewelry", "accessories"],
-  "🗝️ Keys": ["keys"],
-  "🎒 Bags & Backpacks": ["bags", "backpacks"],
-  "📄 Documents & ID": ["documents", "id"],
-  "⚽ Sports Equipment": ["sports_equipment"],
-  "📦 Other": ["other"]
+  "📱 Electronics": ["electronics", "electronic"],
+  "👕 Clothing": ["clothing", "clothes", "apparel"],
+  "📚 Books & Stationery": ["books", "book", "stationery", "stationaries"],
+  "💍 Jewelry & Accessories": ["jewelry", "jewellery", "accessories", "accessory"],
+  "🗝️ Keys": ["keys", "key"],
+  "🎒 Bags & Backpacks": ["bags", "bag", "backpacks", "backpack"],
+  "📄 Documents & ID": ["documents", "document", "id", "identification"],
+  "⚽ Sports Equipment": ["sports_equipment", "sports", "sport", "equipment"],
+  "📦 Other": ["other", "misc", "miscellaneous"]
 };
 
 // Convert the mapping to the format needed for the select component

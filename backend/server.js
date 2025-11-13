@@ -319,11 +319,23 @@ app.post("/api/lost/report", auth, upload.single('image'), async (req, res) => {
 // === LOST ITEMS: BROWSE LOST POSTS (Public, with Staff Sorting) ===
 app.get("/api/lost/browse", async (req, res) => {
   try {
-    const { search, category } = req.query;
+    const { search } = req.query;
+    let categories = req.query.category;
 
     let matchStage = { status: 'lost' };
-    if (category && category !== 'all') {
-      matchStage.category = category;
+    
+    // Handle multiple categories
+    if (categories && categories !== 'all') {
+      // If it's a string (single category), convert to array
+      if (!Array.isArray(categories)) {
+        categories = [categories];
+      }
+      
+      // Convert all categories to lowercase for case-insensitive matching
+      const lowerCaseCategories = categories.map(cat => new RegExp(`^${cat}$`, 'i'));
+      
+      // Match any of the provided categories
+      matchStage.category = { $in: lowerCaseCategories };
     }
     if (search) {
       const regex = new RegExp(search, 'i');
@@ -616,7 +628,8 @@ app.put("/api/items/confirm/:id", auth, async (req, res) => {
 // === "BROWSE FOUND ITEMS" ENDPOINT (Public, with Staff Sorting) ===
 app.get("/api/items/browse", async (req, res) => {
   try {
-    const { search, category } = req.query;
+    const { search } = req.query;
+    let categories = req.query.category;
 
     // Show both 'found' and 'claimed' items (keep visible until returned)
     // Exclude items linked to lost posts (those are auto-claimed and shouldn't appear in browse)
@@ -624,9 +637,22 @@ app.get("/api/items/browse", async (req, res) => {
       status: { $in: ['found', 'claimed'] },
       linkedLostPost: null // Only show items not linked to lost posts
     };
-    if (category && category !== 'all') {
-      matchStage.category = category;
+
+    // Handle multiple categories
+    if (categories && categories !== 'all') {
+      // If it's a string (single category), convert to array
+      if (!Array.isArray(categories)) {
+        categories = [categories];
+      }
+      
+      // Convert all categories to lowercase for case-insensitive matching
+      const lowerCaseCategories = categories.map(cat => new RegExp(`^${cat}$`, 'i'));
+      
+      // Match any of the provided categories
+      matchStage.category = { $in: lowerCaseCategories };
     }
+
+    // Handle search term
     if (search) {
       const regex = new RegExp(search, 'i');
       matchStage.$or = [
