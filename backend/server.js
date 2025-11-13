@@ -331,11 +331,23 @@ app.get("/api/lost/browse", async (req, res) => {
         categories = [categories];
       }
       
-      // Convert all categories to lowercase for case-insensitive matching
-      const lowerCaseCategories = categories.map(cat => new RegExp(`^${cat}$`, 'i'));
+      // Create regex patterns for more flexible matching
+      const categoryPatterns = categories.flatMap(cat => {
+        // Handle common variations and partial matches
+        const patterns = [
+          new RegExp(cat, 'i'), // Direct match (case-insensitive)
+          new RegExp(cat.replace(/s$/, ''), 'i'), // Try singular/plural variations
+          new RegExp(cat + 's?', 'i'), // Optional 's' for plurals
+          new RegExp(cat.replace(/s$/, '').replace(/ie$/, 'y'), 'i') // Handle 'y' to 'ie' variations
+        ];
+        return [...new Set(patterns)]; // Remove duplicates
+      });
       
-      // Match any of the provided categories
-      matchStage.category = { $in: lowerCaseCategories };
+      // Use $or to match any of the patterns
+      matchStage.$or = [
+        ...(matchStage.$or || []), // Keep existing $or conditions if any
+        { category: { $in: categoryPatterns } }
+      ];
     }
     if (search) {
       const regex = new RegExp(search, 'i');
@@ -645,11 +657,23 @@ app.get("/api/items/browse", async (req, res) => {
         categories = [categories];
       }
       
-      // Convert all categories to lowercase for case-insensitive matching
-      const lowerCaseCategories = categories.map(cat => new RegExp(`^${cat}$`, 'i'));
+      // Create regex patterns for more flexible matching
+      const categoryPatterns = categories.flatMap(cat => {
+        // Handle common variations and partial matches
+        const patterns = [
+          new RegExp(cat, 'i'), // Direct match (case-insensitive)
+          new RegExp(cat.replace(/s$/, ''), 'i'), // Try singular/plural variations
+          new RegExp(cat + 's?', 'i'), // Optional 's' for plurals
+          new RegExp(cat.replace(/s$/, '').replace(/ie$/, 'y'), 'i') // Handle 'y' to 'ie' variations
+        ];
+        return [...new Set(patterns)]; // Remove duplicates
+      });
       
-      // Match any of the provided categories
-      matchStage.category = { $in: lowerCaseCategories };
+      // Use $or to match any of the patterns
+      matchStage.$or = [
+        ...(matchStage.$or || []), // Keep existing $or conditions if any
+        { category: { $in: categoryPatterns } }
+      ];
     }
 
     // Handle search term
