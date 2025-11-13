@@ -22,6 +22,12 @@ export default function Register() {
     setLoading(true);
     setError(null);
 
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      setLoading(false);
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
       setLoading(false);
