@@ -4,18 +4,26 @@ import { Select } from "../ui/Select";    // fixed
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 
-const CATEGORIES = [
-  { value: "all", label: "All Categories" },
-  { value: "electronics", label: "📱 Electronics" },
-  { value: "clothing", label: "👕 Clothing" },
-  { value: "books", label: "📚 Books & Stationery" },
-  { value: "jewelry", label: "💍 Jewelry & Accessories" },
-  { value: "keys", label: "🗝️ Keys" },
-  { value: "bags", label: "🎒 Bags & Backpacks" },
-  { value: "documents", label: "📄 Documents & ID" },
-  { value: "sports_equipment", label: "⚽ Sports Equipment" },
-  { value: "other", label: "📦 Other" },
-];
+// Map of display labels to their corresponding category values
+const CATEGORY_MAPPING = {
+  "All Categories": ["all"],
+  "📱 Electronics": ["electronics"],
+  "👕 Clothing": ["clothing"],
+  "📚 Books & Stationery": ["books", "stationery"],
+  "💍 Jewelry & Accessories": ["jewelry", "accessories"],
+  "🗝️ Keys": ["keys"],
+  "🎒 Bags & Backpacks": ["bags", "backpacks"],
+  "📄 Documents & ID": ["documents", "id"],
+  "⚽ Sports Equipment": ["sports_equipment"],
+  "📦 Other": ["other"]
+};
+
+// Convert the mapping to the format needed for the select component
+const CATEGORIES = Object.entries(CATEGORY_MAPPING).map(([label, values]) => ({
+  value: values.join(','), // Join multiple values with comma
+  label,
+  searchValues: values    // Store the individual values for searching
+}));
 
 export default function SearchFilters({
   searchTerm,
